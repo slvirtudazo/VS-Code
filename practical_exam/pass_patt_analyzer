@@ -3,6 +3,7 @@ import itertools
 import tkinter as tk
 from tkinter import ttk, scrolledtext, messagebox, filedialog
 import csv
+import sys
 
 class PasswordPatternSystem:
     """Main system integrating password generation and binary pattern analysis"""
@@ -180,10 +181,7 @@ def console_app():
     """Console-based interface for the system"""
     system = PasswordPatternSystem()
     
-    print("=" * 60)
-    print("PASSWORD GENERATOR AND PATTERN ANALYZER SYSTEM")
-    print("=" * 60)
-    print()
+    print("\nPASSWORD GENERATOR AND PATTERN ANALYZER SYSTEM")
     
     while True:
         print("\nMain Menu:")
@@ -192,13 +190,11 @@ def console_app():
         print("3. Exit")
         
         try:
-            choice = input("\nEnter your choice (1-3): ").strip()
+            choice = input("Enter your choice (1-3): ").strip()
             
             if choice == '1':
                 # Password Generator Module
-                print("\n" + "=" * 60)
-                print("PASSWORD GENERATOR MODULE")
-                print("=" * 60)
+                print("\nPASSWORD GENERATOR MODULE")
                 
                 total_possible = system.calculate_total_passwords()
                 print(f"\nTotal possible password combinations: {total_possible:,}")
@@ -216,7 +212,6 @@ def console_app():
                 passwords = system.generate_multiple_passwords(count)
                 
                 print(f"\n{len(passwords)} unique passwords generated:")
-                print("-" * 60)
                 for i, pwd in enumerate(passwords, 1):
                     print(f"{i:2}. {pwd}")
                 
@@ -231,10 +226,8 @@ def console_app():
                 
             elif choice == '2':
                 # Binary Pattern Analyzer Module
-                print("\n" + "=" * 60)
-                print("BINARY PATTERN ANALYZER MODULE")
-                print("=" * 60)
-                print("\nProblem: Count binary strings without consecutive 1s")
+                print("\nBINARY PATTERN ANALYZER MODULE")
+                print("\nProblem: Count binary strings without consecutive 1s.")
                 
                 while True:
                     try:
@@ -249,8 +242,7 @@ def console_app():
                 count = system.count_valid_binary_strings(n)
                 
                 print(f"\nResults for n = {n}:")
-                print("-" * 60)
-                print(f"Number of valid binary strings: {count}")
+                print(f"\nNumber of valid binary strings: {count}")
                 
                 if n <= 5:
                     print("\nAll valid binary strings:")
@@ -268,13 +260,13 @@ def console_app():
                             print(f"Successfully exported to {filename}")
                 else:
                     print("\n(String list not shown for n > 5 due to large output)")
-                
+
             elif choice == '3':
-                print("\nThank you for using the system!")
-                break
-            
+                print("\nThank you for using the system!\n")
+                sys.exit(0)
+
             else:
-                print("Invalid choice. Please enter 1, 2, or 3.")
+                print("Invalid choice. Please enter 1-3.")
         
         except KeyboardInterrupt:
             print("\n\nProgram interrupted. Exiting...")
@@ -462,9 +454,10 @@ def run_gui():
 # ----- MAIN ENTRY POINT -----
 
 if __name__ == "__main__":
-    print("Select interface mode:")
+    print("\nSelect interface mode:")
     print("1. Console Mode")
     print("2. GUI Mode (Bonus)")
+    print("3. Exit")
     
     while True:
         choice = input("Enter choice (1 or 2): ").strip()
@@ -474,5 +467,8 @@ if __name__ == "__main__":
         elif choice == '2':
             run_gui()
             break
+        elif choice == '3':
+            print("\nThank you for using the system!\n")
+            sys.exit(0)
         else:
-            print("Invalid choice. Please enter 1 or 2.")
+            print("Invalid choice. Please enter 1 to 3.")
