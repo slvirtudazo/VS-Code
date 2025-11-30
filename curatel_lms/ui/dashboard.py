@@ -39,12 +39,12 @@ class Dashboard(QMainWindow):
         # Title section
         title_layout = QVBoxLayout()
         title = QLabel("Curatel")
-        title.setFont(QFont("Montserrat", 30, QFont.Weight.Bold))
+        title.setFont(QFont("Montserrat", 25, QFont.Weight.Bold))
         title.setStyleSheet("color: #000000; border: none;")
         title_layout.addWidget(title)
         
         subtitle = QLabel("Dashboard Panel")
-        subtitle.setFont(QFont("Montserrat", 12))
+        subtitle.setFont(QFont("Montserrat", 11))
         subtitle.setStyleSheet("color: #333333; border: none;")
         title_layout.addWidget(subtitle)
         
@@ -55,7 +55,7 @@ class Dashboard(QMainWindow):
         
         # Logout button
         logout_btn = QPushButton("Logout")
-        logout_btn.setFont(QFont("Montserrat", 13, QFont.Weight.Bold))
+        logout_btn.setFont(QFont("Montserrat", 11, QFont.Weight.Bold))
         logout_btn.setFixedSize(140, 50)
         logout_btn.setStyleSheet("""
             QPushButton {

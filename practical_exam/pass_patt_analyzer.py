@@ -145,7 +145,6 @@ class PasswordPatternSystem:
         try:
             with open(filename, 'w') as f:
                 f.write("Generated Passwords\n")
-                f.write("=" * 50 + "\n\n")
                 for i, pwd in enumerate(passwords, 1):
                     f.write(f"{i}. {pwd}\n")
                 f.write(f"\nTotal passwords generated: {len(passwords)}\n")
@@ -160,14 +159,14 @@ class PasswordPatternSystem:
         try:
             with open(filename, 'w', newline='') as f:
                 writer = csv.writer(f)
-                writer.writerow(['Binary String Analysis Results'])
+                writer.writerow(['Binary String Analysis Results:'])
                 writer.writerow([])
                 writer.writerow(['Length (n)', n])
                 writer.writerow(['Total Valid Strings', count])
                 writer.writerow([])
                 
                 if strings:
-                    writer.writerow(['Valid Binary Strings'])
+                    writer.writerow(['Valid Binary Strings:'])
                     for string in strings:
                         writer.writerow([string])
             return True
@@ -186,7 +185,7 @@ def console_app():
     while True:
         print("\nMain Menu:")
         print("1. Password Generator Module")
-        print("2. Binary Pattern Analyzer Module")
+        print("2. Pattern Analyzer Module")
         print("3. Exit")
         
         try:
@@ -226,7 +225,7 @@ def console_app():
                 
             elif choice == '2':
                 # Binary Pattern Analyzer Module
-                print("\nBINARY PATTERN ANALYZER MODULE")
+                print("\nPATTERN ANALYZER MODULE")
                 print("\nProblem: Count binary strings without consecutive 1s.")
                 
                 while True:
@@ -373,7 +372,6 @@ class PasswordPatternGUI:
             
             self.pwd_output.delete(1.0, tk.END)
             self.pwd_output.insert(tk.END, "Generated Passwords:\n")
-            self.pwd_output.insert(tk.END, "=" * 50 + "\n\n")
             
             for i, pwd in enumerate(passwords, 1):
                 self.pwd_output.insert(tk.END, f"{i:2}. {pwd}\n")
@@ -412,13 +410,11 @@ class PasswordPatternGUI:
             
             self.pattern_output.delete(1.0, tk.END)
             self.pattern_output.insert(tk.END, f"Analysis Results for n = {n}:\n")
-            self.pattern_output.insert(tk.END, "=" * 50 + "\n\n")
-            self.pattern_output.insert(tk.END, f"Number of valid strings: {count}\n\n")
+            self.pattern_output.insert(tk.END, f"\nNumber of valid strings: {count}\n\n")
             
             if n <= 5:
                 strings = self.system.generate_valid_binary_strings(n)
                 self.pattern_output.insert(tk.END, "All valid binary strings:\n")
-                self.pattern_output.insert(tk.END, "-" * 50 + "\n")
                 for i, s in enumerate(strings, 1):
                     self.pattern_output.insert(tk.END, f"{i:2}. {s if s else '(empty)'}\n")
                 self.current_binary_data = (n, strings, count)
@@ -456,7 +452,7 @@ def run_gui():
 if __name__ == "__main__":
     print("\nSelect interface mode:")
     print("1. Console Mode")
-    print("2. GUI Mode (Bonus)")
+    print("2. GUI Mode")
     print("3. Exit")
     
     while True:

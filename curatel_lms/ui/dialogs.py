@@ -99,7 +99,6 @@ class BaseDialog(QDialog):
         button_layout.addStretch()
         return button_layout
 
-
 class ResetPasswordDialog(BaseDialog):
     """Password reset dialog for forgotten passwords"""
     
@@ -171,7 +170,6 @@ class ResetPasswordDialog(BaseDialog):
             f"Password reset instructions have been sent to:\n{email}\n\nPlease check your inbox."
         )
         self.accept()
-
 
 class AddBookDialog(BaseDialog):
     """Dialog for adding new books to the catalog"""
@@ -280,7 +278,6 @@ class AddBookDialog(BaseDialog):
             self.accept()
         else:
             QMessageBox.critical(self, "Error", "Failed to add book")
-
 
 class ConfirmDeleteDialog(QDialog):
     """Confirmation dialog for delete operations"""

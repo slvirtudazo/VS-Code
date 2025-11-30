@@ -200,7 +200,7 @@ class LoginScreen(QMainWindow):
         # Welcome message
         welcome_msg = QLabel("Welcome, Sam!\nSign in to manage book collections")
         welcome_msg.setFont(QFont("Montserrat", 15, QFont.Weight.Bold))
-        welcome_msg.setStyleSheet("color: #FFFFFF; background: transparent; border : none;")
+        welcome_msg.setStyleSheet("color: white; background: transparent; border : none;")
         welcome_msg.setAlignment(Qt.AlignmentFlag.AlignCenter)
         welcome_msg.setWordWrap(True)
         form_layout.addWidget(welcome_msg)
@@ -209,7 +209,7 @@ class LoginScreen(QMainWindow):
         # Username label
         username_label = QLabel("Username")
         username_label.setFont(QFont("Montserrat", 11, QFont.Weight.Normal))
-        username_label.setStyleSheet("color: #FFFFFF; background: transparent; border: none;")
+        username_label.setStyleSheet("color: white; background: transparent; border: none;")
         form_layout.addWidget(username_label)
 
         # Username input - solid white rounded rectangle

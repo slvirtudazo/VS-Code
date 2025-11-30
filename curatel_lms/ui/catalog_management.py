@@ -1,9 +1,10 @@
 # ui/catalog_management.py
 
 from PyQt6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
-                              QPushButton, QLineEdit, QTableWidget, QTableWidgetItem, QComboBox, QMessageBox)
+                              QPushButton, QLineEdit, QTableWidget, QTableWidgetItem, 
+                              QComboBox, QMessageBox, QHeaderView, QAbstractItemView)
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont, QColor
+from PyQt6.QtGui import QFont, QColor, QBrush
 
 class CatalogManagement(QMainWindow):
     """Catalog Management screen"""
@@ -26,45 +27,30 @@ class CatalogManagement(QMainWindow):
         """Setup UI"""
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
+        central_widget.mousePressEvent = self.clear_selection
         central_widget.setStyleSheet("background-color: #C9B8A8;")
         
         main_layout = QVBoxLayout(central_widget)
         main_layout.setContentsMargins(40, 20, 40, 30)
-        main_layout.setSpacing(15)
+        main_layout.setSpacing(-10)
         
         # Header
         header_layout = QHBoxLayout()
-        
         header_text = QVBoxLayout()
+
         title = QLabel("Catalog Management")
         title.setFont(QFont("Montserrat", 20, QFont.Weight.Bold))
         title.setStyleSheet("color: #000000;")
         header_text.addWidget(title)
-        
+
         subtitle = QLabel("Organize, update, and track books in the library")
         subtitle.setFont(QFont("Montserrat", 11))
         subtitle.setStyleSheet("color: #333333;")
         header_text.addWidget(subtitle)
-        
+        header_text.addSpacing(20)
+
         header_layout.addLayout(header_text)
         header_layout.addStretch()
-        
-        back_btn = QPushButton("Back to Dashboard")
-        back_btn.setFont(QFont("Montserrat", 11))
-        back_btn.setFixedSize(160, 40)
-        back_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #8B7E66;
-                color: white;
-                border: none;
-                border-radius: 10px;
-            }
-            QPushButton:hover {
-                background-color: #6B5E46;
-            }
-        """)
-        back_btn.clicked.connect(self.go_back_to_dashboard)
-        header_layout.addWidget(back_btn)
         
         main_layout.addLayout(header_layout)
         
@@ -76,41 +62,23 @@ class CatalogManagement(QMainWindow):
         self.search_input.setStyleSheet("""
             QLineEdit {
                 border: 2px solid #8B7E66;
-                border-radius: 15px;
+                border-radius: 10px;
                 padding: 8px 10px;
                 font-family: Montserrat;
                 font-size: 11px;
-                color: #000000;
+                color: black;
                 background-color: white;
             }
             QLineEdit:focus {
                 border: 2px solid #6B5E46;
             }
             QLineEdit::placeholder {
-                color: #999999;
+                color: gray;
             }
         """)
         self.search_input.setFixedHeight(38)
         self.search_input.textChanged.connect(self.filter_books)  # Real-time search
         search_layout.addWidget(self.search_input)
-        
-        search_btn = QPushButton("Search")
-        search_btn.setFont(QFont("Montserrat", 10))
-        search_btn.setFixedSize(95, 38)
-        search_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #9B8B7E;
-                color: white;
-                border: none;
-                border-radius: 10px;
-            }
-            QPushButton:hover {
-                background-color: #8B7B6E;
-            }
-        """)
-        search_btn.clicked.connect(self.filter_books)
-        search_layout.addWidget(search_btn)
-        
         search_layout.addSpacing(20)
         
         category_label = QLabel("Category")
@@ -122,15 +90,25 @@ class CatalogManagement(QMainWindow):
         self.category_combo.addItems(["All", "Adventure", "Art", "Biography", "Business", 
                                        "Cooking", "Fantasy", "Fiction", "History", "Horror", 
                                        "Mystery", "Non-Fiction", "Poetry", "Romance", "Science", "Technology"])
+        # --- EDITED: Dropdown text color black ---
         self.category_combo.setStyleSheet("""
             QComboBox {
                 border: 2px solid #8B7E66;
                 border-radius: 10px;
                 padding: 5px 10px;
                 font-family: Montserrat;
-                font-size: 10px;
+                font-size: 12px;
                 color: #000000;
                 background-color: white;
+            }
+            QLineEdit:focus {
+                border: 2px solid #6B5E46;
+            }
+            QComboBox QAbstractItemView {
+                color: #000000;
+                background-color: white;
+                selection-background-color: #D9CFC2;
+                selection-color: black;
             }
         """)
         self.category_combo.setFixedSize(120, 35)
@@ -146,15 +124,25 @@ class CatalogManagement(QMainWindow):
         
         self.status_combo = QComboBox()
         self.status_combo.addItems(["All", "Available", "Borrowed"])
+        # --- EDITED: Dropdown text color black ---
         self.status_combo.setStyleSheet("""
             QComboBox {
                 border: 2px solid #8B7E66;
                 border-radius: 10px;
                 padding: 5px 10px;
                 font-family: Montserrat;
-                font-size: 10px;
+                font-size: 12px;
                 color: #000000;
                 background-color: white;
+            }
+            QLineEdit:focus {
+                border: 2px solid #6B5E46;
+            }
+            QComboBox QAbstractItemView {
+                color: #000000;
+                background-color: white;
+                selection-background-color: #D9CFC2;  /* Full highlight on hover/click */
+                selection-color: black;
             }
         """)
         self.status_combo.setFixedSize(120, 35)
@@ -166,50 +154,101 @@ class CatalogManagement(QMainWindow):
         # Books table
         self.books_table = QTableWidget()
         self.books_table.setColumnCount(8)
+        self.books_table.setSortingEnabled(False)
         self.books_table.setHorizontalHeaderLabels(["Book ID", "Title", "Author", "ISBN", "Category", "Status", "Added At", "Updated At"])
+        
+        # Make table cells uneditable but allow row selection
+        self.books_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.books_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.books_table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        self.books_table.setAlternatingRowColors(True)
         self.books_table.setStyleSheet("""
             QTableWidget {
-                border: 2px solid #8B7E66;
-                border-radius: 10px;
-                background-color: #E8DCC8;
+                border: 1px solid #8B7E66;
                 gridline-color: #8B7E66;
+                gridline-width: 1px;  /* Ensure all lines are 1px */
+                background-color: white;
+                selection-background-color: #D9CFC2;
+                selection-color: black;
             }
             QHeaderView::section {
                 background-color: #9B8B7E;
                 padding: 8px;
-                border: 1px solid #8B7E66;
                 font-weight: bold;
-                color: #FFFFFF;
+                color: white;
                 font-family: Montserrat;
+                font-size: 12px;
+                border: none;  /* Remove double-thickness effect */
             }
-            QTableWidget::item {
-                padding: 8px;
-                color: #000000;
-                background-color: white;
+            QHeaderView::section:hover {
+                background-color: #D9CFC2;
+            }
+            QTableWidget::item:hover {
+                background-color: #D9CFC2;
+            }
+            QTableWidget::item:selected {
+                background-color: #C9B8A8;
+            }
+            QTableCornerButton::section {
+                background-color: #9B8B7E;
+                border: 1px solid #8B7E66;
             }
         """)
         
-        # Enable auto-resize for columns based on content
-        from PyQt6.QtWidgets import QHeaderView
+        # Configure header and column sizing
         header = self.books_table.horizontalHeader()
+        header.setSectionResizeMode(QHeaderView.ResizeMode.Fixed)  
+        self.books_table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Fixed)
+        header.setSectionsClickable(False)
         header.setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+        header.setStretchLastSection(True)
+        header.setSectionsMovable(False)
+        header.setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
         
-        # Allow horizontal scrolling when content is too wide
+        header.setSectionsClickable(True)
+        header.setHighlightSections(False)
+
+        self.books_table.setShowGrid(True)
+        self.books_table.setGridStyle(Qt.PenStyle.SolidLine)
+
+        # set individual columns to ResizeToContents too (keeps consistent behavior)
+        for i in range(self.books_table.columnCount()):
+            header.setSectionResizeMode(i, QHeaderView.ResizeMode.ResizeToContents)
+
+        # Set specific columns to resize based on content for better visibility
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Interactive)  # Book ID
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)      # Title
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Interactive)  # Author
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.Interactive)  # ISBN
+        header.setSectionResizeMode(4, QHeaderView.ResizeMode.Interactive)  # Category
+        header.setSectionResizeMode(5, QHeaderView.ResizeMode.Interactive)  # Status
+        header.setSectionResizeMode(6, QHeaderView.ResizeMode.Interactive)  # Added At
+        header.setSectionResizeMode(7, QHeaderView.ResizeMode.Interactive)  # Updated At
+        
+        self.books_table.setColumnWidth(0, 100)
+        self.books_table.setColumnWidth(2, 180)
+        self.books_table.setColumnWidth(3, 150)
+        self.books_table.setColumnWidth(4, 120)
+        self.books_table.setColumnWidth(5, 110)
+        self.books_table.setColumnWidth(6, 120)
+        self.books_table.setColumnWidth(7, 120)
+        
+        # Make vertical header (row numbers) bold and black with hover/click highlight
+        self.books_table.verticalHeader().setVisible(False)
+
         self.books_table.setHorizontalScrollMode(QTableWidget.ScrollMode.ScrollPerPixel)
         self.books_table.setVerticalScrollMode(QTableWidget.ScrollMode.ScrollPerPixel)
-        
-        # Selection settings
-        self.books_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
-        self.books_table.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
-        
+        self.books_table.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+
         main_layout.addWidget(self.books_table)
         
-        # Action buttons
+        # Action buttons - moved "Back to Dashboard" to far right
         action_layout = QHBoxLayout()
         
         add_btn = QPushButton("Add Book")
         add_btn.setFont(QFont("Montserrat", 10))
         add_btn.setFixedSize(120, 40)
+        # --- EDITED: Foreground text black ---
         add_btn.setStyleSheet("""
             QPushButton {
                 background-color: #8B7E66;
@@ -223,6 +262,23 @@ class CatalogManagement(QMainWindow):
         """)
         add_btn.clicked.connect(self.add_book)
         action_layout.addWidget(add_btn)
+
+        view_btn = QPushButton("View Book")
+        view_btn.setFont(QFont("Montserrat", 10))
+        view_btn.setFixedSize(120, 40)
+        view_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #8B7E66;
+                color: white;
+                border: none;
+                border-radius: 10px;
+            }
+            QPushButton:hover {
+                background-color: #6B5E46;
+            }
+        """)
+        view_btn.clicked.connect(self.view_book)
+        action_layout.addWidget(view_btn)
         
         update_btn = QPushButton("Update Book")
         update_btn.setFont(QFont("Montserrat", 10))
@@ -259,8 +315,44 @@ class CatalogManagement(QMainWindow):
         action_layout.addWidget(delete_btn)
         
         action_layout.addStretch()
+        
+        back_btn = QPushButton("Back to Dashboard")
+        back_btn.setFont(QFont("Montserrat", 10))  # --- EDITED: Match other buttons ---
+        back_btn.setFixedSize(150, 40)  # --- EDITED: Match other buttons ---
+        back_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #8B7E66;
+                color: white;
+                border: none;
+                border-radius: 10px;
+            }
+            QPushButton:hover {
+                background-color: #6B5E46;
+            }
+        """)
+        back_btn.clicked.connect(self.go_back_to_dashboard)
+        action_layout.addWidget(back_btn)  # --- EDITED: Positioned to far right ---
+        
         main_layout.addLayout(action_layout)
     
+    def clear_selection(self, event):
+        """Clear any table selection and remove focus from inputs when clicking empty space.
+           NOTE: this does NOT clear search text (per user's choice). """
+        try:
+            if self.books_table:
+                self.books_table.clearSelection()
+            # Remove focus from input widgets (keeps their text intact)
+            if hasattr(self, "search_input"):
+                self.search_input.clearFocus()
+            if hasattr(self, "category_combo"):
+                self.category_combo.clearFocus()
+            if hasattr(self, "status_combo"):
+                self.status_combo.clearFocus()
+        except Exception as e:
+            print(f"[WARN] clear_selection encountered error: {e}")
+        # call original QWidget mousePressEvent so other behavior isn't blocked
+        QWidget.mousePressEvent(self.centralWidget(), event)
+
     def load_books_from_database(self):
         """Load all books from database"""
         if not self.db or not self.db.connection:
@@ -288,70 +380,67 @@ class CatalogManagement(QMainWindow):
         self.books_table.setRowCount(len(books))
         
         for row, book in enumerate(books):
-            # Book ID - Center aligned
+            # Book ID - Center aligned, normal weight
             item = QTableWidgetItem(str(book['book_id']))
-            item.setFont(QFont("Montserrat", 10))
+            item.setFont(QFont("Montserrat", 10))  # Normal weight
             item.setForeground(QColor("#000000"))
             item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
             self.books_table.setItem(row, 0, item)
             
-            # Title - Left aligned (better for long text)
+            # Title - Center aligned, normal weight
             item = QTableWidgetItem(str(book['title']))
-            item.setFont(QFont("Montserrat", 10))
+            item.setFont(QFont("Montserrat", 10))  # Normal weight
             item.setForeground(QColor("#000000"))
-            item.setTextAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
             self.books_table.setItem(row, 1, item)
             
-            # Author - Left aligned
+            # Author - Center aligned, normal weight
             item = QTableWidgetItem(str(book['author']))
-            item.setFont(QFont("Montserrat", 10))
+            item.setFont(QFont("Montserrat", 10))  # Normal weight
             item.setForeground(QColor("#000000"))
-            item.setTextAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
             self.books_table.setItem(row, 2, item)
             
-            # ISBN - Center aligned
+            # ISBN - Center aligned, normal weight
             item = QTableWidgetItem(str(book['isbn']))
-            item.setFont(QFont("Montserrat", 10))
+            item.setFont(QFont("Montserrat", 10))  # Normal weight
             item.setForeground(QColor("#000000"))
             item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
             self.books_table.setItem(row, 3, item)
             
-            # Category - Center aligned
+            # Category - Center aligned, normal weight
             item = QTableWidgetItem(str(book['category']))
-            item.setFont(QFont("Montserrat", 10))
+            item.setFont(QFont("Montserrat", 10))  # Normal weight
             item.setForeground(QColor("#000000"))
             item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
             self.books_table.setItem(row, 4, item)
             
-            # Status - Center aligned with color
+            # Status - Center aligned with color (regular weight now)
             item = QTableWidgetItem(str(book['status']))
-            item.setFont(QFont("Montserrat", 10, QFont.Weight.Bold))
+            item.setFont(QFont("Montserrat", 10))  # Changed to regular weight
             item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
             # Color code status
             if book['status'] == 'Available':
-                item.setForeground(QColor("#28A745"))  # Green
+                item.setForeground(QColor("#228C3A"))  # Green
             else:
                 item.setForeground(QColor("#DC3545"))  # Red
             self.books_table.setItem(row, 5, item)
             
-            # Added At - Center aligned
+            # Added At - Center aligned, normal weight
             added_at = str(book['added_at']).split()[0] if book['added_at'] else ""
             item = QTableWidgetItem(added_at)
-            item.setFont(QFont("Montserrat", 10))
+            item.setFont(QFont("Montserrat", 10))  # Normal weight
             item.setForeground(QColor("#000000"))
             item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
             self.books_table.setItem(row, 6, item)
             
-            # Updated At - Center aligned
+            # Updated At - Center aligned, normal weight
             updated_at = str(book['updated_at']).split()[0] if book['updated_at'] else ""
             item = QTableWidgetItem(updated_at)
-            item.setFont(QFont("Montserrat", 10))
+            item.setFont(QFont("Montserrat", 10))  # Normal weight
             item.setForeground(QColor("#000000"))
             item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
             self.books_table.setItem(row, 7, item)
-        
-        # Adjust row heights for better vertical centering
-        self.books_table.verticalHeader().setDefaultSectionSize(45)
     
     def filter_books(self):
         """Filter books based on search and combo box selections"""
@@ -390,6 +479,15 @@ class CatalogManagement(QMainWindow):
         """Add new book - placeholder"""
         QMessageBox.information(self, "Add Book", "Add Book functionality will be implemented here")
     
+    def view_book(self):
+        """View selected book - placeholder"""
+        selected_row = self.books_table.currentRow()
+        if selected_row >= 0:
+            book_id = self.books_table.item(selected_row, 0).text()
+            QMessageBox.information(self, "View Book", f"View details for Book ID {book_id}")
+        else:
+            QMessageBox.warning(self, "No Selection", "Please select a book to view")
+
     def update_book(self):
         """Update selected book - placeholder"""
         selected_row = self.books_table.currentRow()
