@@ -17,7 +17,7 @@ class CatalogManagement(QMainWindow):
         super().__init__()
         self.db = db
         self.all_books = []  # Store all books for filtering
-        self.setWindowTitle("Catalog Management - Curatel LMS")
+        self.setWindowTitle("Curatel - Catalog Management")
         try:
             self.setup_ui()
             self.load_books_from_database()

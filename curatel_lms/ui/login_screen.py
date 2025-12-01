@@ -48,7 +48,7 @@ class ResetPasswordDialog(QDialog):
             QLineEdit {
                 background-color: #FFFFFF;
                 border: none;
-                border-radius: 25px;
+                border-radius: 20px;
                 padding: 12px 20px;
                 font-family: Montserrat;
                 font-size: 12px;
@@ -70,12 +70,12 @@ class ResetPasswordDialog(QDialog):
         send_btn.setStyleSheet(
             """
             QPushButton {
-                background-color: #6B7366;
+                background-color: #8BAE66;
                 color: white;
                 border: none;
                 border-radius: 20px;
             }
-            QPushButton:hover { background-color: #5A6255; }
+            QPushButton:hover { background-color: #A3B087; }
             """
         )
         send_btn.clicked.connect(self.send_reset)
@@ -89,12 +89,12 @@ class ResetPasswordDialog(QDialog):
         cancel_btn.setStyleSheet(
             """
             QPushButton {
-                background-color: #6E6060;
+                background-color: #AF3E3E;
                 color: white;
                 border: none;
                 border-radius: 20px;
             }
-            QPushButton:hover { background-color: #664F4F; }
+            QPushButton:hover { background-color: #CD5656; }
             """
         )
         cancel_btn.clicked.connect(self.close)
@@ -220,7 +220,7 @@ class LoginScreen(QMainWindow):
             """
             QLineEdit {
                 border: 1px solid white;
-                border-radius: 25px;
+                border-radius: 20px;
                 padding: 12px 20px;
                 font-size: 12px;
                 color: black;
@@ -251,7 +251,7 @@ class LoginScreen(QMainWindow):
             """
             QLineEdit {
                 border: 1px solid white;
-                border-radius: 25px;
+                border-radius: 20px;
                 padding: 12px 20px;
                 font-size: 12px;
                 color: black;
@@ -299,7 +299,7 @@ class LoginScreen(QMainWindow):
             QPushButton {
                 color: white;
                 border: none;
-                border-radius: 25px;
+                border-radius: 20px;
                 background: #8B7E66;
             }
             QPushButton:hover { background-color: #7A6D55; }
