@@ -7,7 +7,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QColor
 
 # Import the dialogs
-from curatel_lms.ui.dialogs import (AddBookDialog, ViewBookDialog, 
+from curatel_lms.ui.catalog_dialogs import (AddBookDialog, ViewBookDialog, 
                                      UpdateBookDialog, ConfirmDeleteDialog)
 
 class CatalogManagement(QMainWindow):
@@ -36,7 +36,7 @@ class CatalogManagement(QMainWindow):
         
         main_layout = QVBoxLayout(central_widget)
         main_layout.setContentsMargins(40, 20, 40, 30)
-        main_layout.setSpacing(-10)
+        main_layout.setSpacing(-5)
         
         # Header
         header_layout = QHBoxLayout()
@@ -51,7 +51,7 @@ class CatalogManagement(QMainWindow):
         subtitle.setFont(QFont("Montserrat", 11))
         subtitle.setStyleSheet("color: #333333;")
         header_text.addWidget(subtitle)
-        header_text.addSpacing(20)
+        header_text.addSpacing(15)
 
         header_layout.addLayout(header_text)
         header_layout.addStretch()
@@ -80,10 +80,10 @@ class CatalogManagement(QMainWindow):
                 color: gray;
             }
         """)
-        self.search_input.setFixedHeight(38)
+        self.search_input.setFixedHeight(40)
         self.search_input.textChanged.connect(self.filter_books)
         search_layout.addWidget(self.search_input)
-        search_layout.addSpacing(20)
+        search_layout.addSpacing(200)                # Space between search bar and category
         
         category_label = QLabel("Category")
         category_label.setFont(QFont("Montserrat", 10))
@@ -114,11 +114,10 @@ class CatalogManagement(QMainWindow):
                 selection-color: black;
             }
         """)
-        self.category_combo.setFixedSize(120, 35)
+        self.category_combo.setFixedSize(120, 40)
         self.category_combo.currentTextChanged.connect(self.filter_books)
         search_layout.addWidget(self.category_combo)
-        
-        search_layout.addSpacing(20)
+        search_layout.addSpacing(50)                    # Space between two combo box
         
         status_label = QLabel("Status")
         status_label.setFont(QFont("Montserrat", 10))
@@ -147,17 +146,19 @@ class CatalogManagement(QMainWindow):
                 selection-color: black;
             }
         """)
-        self.status_combo.setFixedSize(120, 35)
+        self.status_combo.setFixedSize(120, 40)
         self.status_combo.currentTextChanged.connect(self.filter_books)
         search_layout.addWidget(self.status_combo)
         
         main_layout.addLayout(search_layout)
+        main_layout.addSpacing(5)
         
         # Books table
         self.books_table = QTableWidget()
         self.books_table.setColumnCount(8)
         self.books_table.setSortingEnabled(False)
-        self.books_table.setHorizontalHeaderLabels(["Book ID", "Title", "Author", "ISBN", "Category", "Status", "Added At", "Updated At"])
+        self.books_table.setHorizontalHeaderLabels(["Book ID", "Title", "Author", "ISBN",
+                                                    "Category", "Status", "Added At", "Updated At"])
         
         self.books_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.books_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
@@ -201,11 +202,11 @@ class CatalogManagement(QMainWindow):
         header.setSectionsClickable(False)
         header.setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         header.setStretchLastSection(True)
-        header.setSectionsMovable(False)
+        header.setSectionsMovable(True)
         header.setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
         
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.Interactive)
-        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Interactive)
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.Interactive)
         header.setSectionResizeMode(3, QHeaderView.ResizeMode.Interactive)
         header.setSectionResizeMode(4, QHeaderView.ResizeMode.Interactive)
@@ -213,13 +214,14 @@ class CatalogManagement(QMainWindow):
         header.setSectionResizeMode(6, QHeaderView.ResizeMode.Interactive)
         header.setSectionResizeMode(7, QHeaderView.ResizeMode.Interactive)
         
-        self.books_table.setColumnWidth(0, 100)
+        self.books_table.setColumnWidth(0, 80)
+        self.books_table.setColumnWidth(1, 300)
         self.books_table.setColumnWidth(2, 180)
         self.books_table.setColumnWidth(3, 150)
-        self.books_table.setColumnWidth(4, 120)
-        self.books_table.setColumnWidth(5, 110)
-        self.books_table.setColumnWidth(6, 120)
-        self.books_table.setColumnWidth(7, 120)
+        self.books_table.setColumnWidth(4, 140)
+        self.books_table.setColumnWidth(5, 160)
+        self.books_table.setColumnWidth(7, 220)
+        self.books_table.setColumnWidth(6, 200)
         
         self.books_table.verticalHeader().setVisible(False)
         self.books_table.setHorizontalScrollMode(QTableWidget.ScrollMode.ScrollPerPixel)
@@ -227,7 +229,8 @@ class CatalogManagement(QMainWindow):
         self.books_table.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
 
         main_layout.addWidget(self.books_table)
-        
+        main_layout.addSpacing(5)
+
         # Action buttons
         action_layout = QHBoxLayout()
         
@@ -406,16 +409,16 @@ class CatalogManagement(QMainWindow):
                 item.setForeground(QColor("#DC3545"))
             self.books_table.setItem(row, 5, item)
             
-            # Added At
-            added_at = str(book['added_at']).split()[0] if book['added_at'] else ""
+            # Added At - Display full datetime
+            added_at = str(book['added_at']) if book['added_at'] else ""
             item = QTableWidgetItem(added_at)
             item.setFont(QFont("Montserrat", 10))
             item.setForeground(QColor("#000000"))
             item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
             self.books_table.setItem(row, 6, item)
             
-            # Updated At
-            updated_at = str(book['updated_at']).split()[0] if book['updated_at'] else ""
+            # Updated At - Display full datetime
+            updated_at = str(book['updated_at']) if book['updated_at'] else ""
             item = QTableWidgetItem(updated_at)
             item.setFont(QFont("Montserrat", 10))
             item.setForeground(QColor("#000000"))

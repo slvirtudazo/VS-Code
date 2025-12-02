@@ -264,7 +264,6 @@ class AddBookDialog(BaseDialog):
             label.setStyleSheet(label_style)
             label.setAlignment(Qt.AlignmentFlag.AlignCenter)
             form_layout.addWidget(label)
-            # form_layout.setSpacing(-5)
             form_layout.addWidget(widget)
 
         # TITLE
@@ -510,6 +509,7 @@ class ViewBookDialog(BaseDialog):
                 color: white;
                 border: none;
                 border-radius: 10px;
+                padding: 8px;                
                 font-family: Montserrat;
                 font-size: 18px;
                 font-weight: bold;
@@ -700,7 +700,7 @@ class UpdateBookDialog(BaseDialog):
 
         layout.addSpacing(50)
 
-        # ----------- BUTTONS (same style as AddBookDialog) -----------
+        # BUTTONS
         buttons = self.create_buttons("Update", "Cancel", self.update_book)
 
         for btn in buttons.findChildren(QPushButton):
@@ -797,8 +797,7 @@ class ConfirmDeleteDialog(QDialog):
         frame.setFixedSize(600, 250)
         frame.setStyleSheet("""
             background-color: #8B7E66;
-            border: 3px solid white;
-            border-radius: 30px;
+            border: none;
         """)
         frame_layout = QVBoxLayout(frame)
         frame_layout.setContentsMargins(30, 20, 30, 20)
@@ -809,7 +808,7 @@ class ConfirmDeleteDialog(QDialog):
         message.setWordWrap(True)
         message.setStyleSheet("""
             font-family: Montserrat;
-            font-size: 23px;
+            font-size: 20px;
             border: none;
             color: white;
             background-color: #8B7E66;
