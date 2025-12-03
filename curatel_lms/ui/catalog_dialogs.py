@@ -803,7 +803,7 @@ class ConfirmDeleteDialog(QDialog):
         frame_layout.setContentsMargins(30, 20, 30, 20)
         frame_layout.setSpacing(20)
 
-        message = QLabel(f"Are you sure you want to delete:\n'{self.book_title}'?")
+        message = QLabel(f"Are you sure you want to permanently delete\n'{self.book_title}'?")
         message.setAlignment(Qt.AlignmentFlag.AlignCenter)
         message.setWordWrap(True)
         message.setStyleSheet("""

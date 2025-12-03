@@ -214,14 +214,14 @@ class CatalogManagement(QMainWindow):
         header.setSectionResizeMode(6, QHeaderView.ResizeMode.Interactive)
         header.setSectionResizeMode(7, QHeaderView.ResizeMode.Interactive)
         
-        self.books_table.setColumnWidth(0, 80)
-        self.books_table.setColumnWidth(1, 300)
-        self.books_table.setColumnWidth(2, 180)
-        self.books_table.setColumnWidth(3, 150)
-        self.books_table.setColumnWidth(4, 140)
-        self.books_table.setColumnWidth(5, 160)
-        self.books_table.setColumnWidth(7, 220)
-        self.books_table.setColumnWidth(6, 200)
+        self.books_table.setColumnWidth(0, 80)  # Book ID
+        self.books_table.setColumnWidth(1, 300) # Title
+        self.books_table.setColumnWidth(2, 180) # Author
+        self.books_table.setColumnWidth(3, 150) # ISBN
+        self.books_table.setColumnWidth(4, 140) # Category
+        self.books_table.setColumnWidth(5, 160) # Status
+        self.books_table.setColumnWidth(7, 220) # Added At
+        self.books_table.setColumnWidth(6, 200) # Updated At
         
         self.books_table.verticalHeader().setVisible(False)
         self.books_table.setHorizontalScrollMode(QTableWidget.ScrollMode.ScrollPerPixel)

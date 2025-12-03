@@ -1,30 +1,30 @@
-# ui/patron_dialogs.py
+# ui/circulation_dialogs.py
 
 from PyQt6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel, QWidget, QSizePolicy, 
-                              QLineEdit, QPushButton, QComboBox, QMessageBox, QApplication)
-from PyQt6.QtCore import Qt
+                              QLineEdit, QPushButton, QComboBox, QMessageBox, QApplication, QDateEdit)
+from PyQt6.QtCore import Qt, QDate
 from PyQt6.QtGui import QFont
-from datetime import datetime
+from datetime import datetime, timedelta
 
-class AddMemberDialog(QDialog):
-    """Dialog for adding new members - matches AddBookDialog design"""
+class AddBorrowDialog(QDialog):
+    """Dialog for adding new borrowing transactions - matches AddMemberDialog design"""
     
     def __init__(self, parent=None, db=None, callback=None):
         super().__init__(parent)
         self.db = db
         self.callback = callback
 
-        # Same window setup as AddBookDialog
+        # Same window setup as other add dialogs
         self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, False)
         self.setWindowFlag(Qt.WindowType.MSWindowsFixedSizeDialogHint)
-        self.setFixedSize(800, 680)
+        self.setFixedSize(800, 720)
         self.move(QApplication.primaryScreen().geometry().center() - self.rect().center())
 
-        self.setWindowTitle("Curatel - Patron Management")
+        self.setWindowTitle("Curatel - Circulation Management")
         self.setup_ui()
     
     def create_header(self, text):
-        """Create header matching book dialog style"""
+        """Create header matching other dialog styles"""
         header = QWidget()
         header.setFixedHeight(80)
         header.setStyleSheet("""
@@ -50,8 +50,8 @@ class AddMemberDialog(QDialog):
         return header
 
     def setup_ui(self):
-        """Setup UI matching AddBookDialog"""
-        # Set dialog background to match book dialog
+        """Setup UI matching AddMemberDialog"""
+        # Set dialog background to match other dialogs
         self.setStyleSheet("background-color: #8B7E66;")
         
         layout = QVBoxLayout(self)
@@ -59,14 +59,14 @@ class AddMemberDialog(QDialog):
         layout.setSpacing(0)
 
         # Header
-        layout.addSpacing(-20)
-        header = self.create_header("ADD MEMBER")
+        layout.addSpacing(-30)
+        header = self.create_header("ADD TRANSACTION")
         layout.addWidget(header)
         layout.addSpacing(30)
 
-        # Main frame container - same size and style as book dialog
+        # Main frame container - same size and style
         form_container = QWidget()
-        form_container.setFixedSize(600, 390)
+        form_container.setFixedSize(600, 420)
         form_container.setStyleSheet("""
             background: transparent;
             border: 3px solid white;
@@ -74,10 +74,10 @@ class AddMemberDialog(QDialog):
         """)
 
         form_layout = QVBoxLayout(form_container)
-        form_layout.setContentsMargins(30, 10, 30, 50)
+        form_layout.setContentsMargins(30, 20, 30, 50)
         form_layout.setSpacing(0)
 
-        # Styles matching book dialog
+        # Styles matching other dialogs
         label_style = """
             font-family: Montserrat;
             font-size: 15px;
@@ -101,36 +101,81 @@ class AddMemberDialog(QDialog):
             }
         """
 
+        date_style = """
+            QDateEdit {
+                font-family: Montserrat;
+                font-size: 13px;
+                border: 1px solid #8B7E66;
+                border-radius: 10px;
+                padding: 8px;
+                background-color: white;
+                color: black;
+            }
+            QDateEdit:focus {
+                border: 2px solid #6B5E46;
+            }
+            QDateEdit::drop-down {
+                border: none;
+                padding-right: 10px;
+            }
+        """
+
         FIELD_W = 540
         FIELD_H = 50
 
         # Helper function to add fields
-        def add_field(label_text, widget):  
+        def add_field(label_text, widget):
             label = QLabel(label_text)
             label.setStyleSheet(label_style)
             label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
             form_layout.addWidget(label)
-            form_layout.addSpacing(-20)           # label to field spacing
+            form_layout.addSpacing(-20)
             form_layout.addWidget(widget)
 
-        # FULL NAME
-        self.fullname_input = QLineEdit()
-        self.fullname_input.setFixedSize(FIELD_W, FIELD_H)
-        self.fullname_input.setStyleSheet(input_style)
-        add_field("Full Name", self.fullname_input)
+        # BOOK ID
+        self.book_id_input = QLineEdit()
+        self.book_id_input.setPlaceholderText("e.g., BK-001")
+        self.book_id_input.setFixedSize(FIELD_W, FIELD_H)
+        self.book_id_input.setStyleSheet(input_style)
+        add_field("Book ID", self.book_id_input)
 
-        # EMAIL
-        self.email_input = QLineEdit()
-        self.email_input.setFixedSize(FIELD_W, FIELD_H)
-        self.email_input.setStyleSheet(input_style)
-        add_field("Email", self.email_input)
+        # MEMBER ID
+        self.member_id_input = QLineEdit()
+        self.member_id_input.setPlaceholderText("e.g., MEM-001")
+        self.member_id_input.setFixedSize(FIELD_W, FIELD_H)
+        self.member_id_input.setStyleSheet(input_style)
+        add_field("Member ID", self.member_id_input)
 
-        # MOBILE NUMBER
-        self.mobile_input = QLineEdit()
-        self.mobile_input.setFixedSize(FIELD_W, FIELD_H)
-        self.mobile_input.setStyleSheet(input_style)
-        add_field("Mobile Number (+63)", self.mobile_input)
+        # BORROW DATE
+        self.borrow_date_input = QDateEdit()
+        self.borrow_date_input.setCalendarPopup(True)
+
+        self.borrow_date_input.setSpecialValueText(" ")          
+        self.borrow_date_input.setDate(QDate())                  
+        self.borrow_date_input.setMinimumDate(QDate(1752, 9, 14))  
+        self.borrow_date_input.setMaximumDate(QDate(7999, 12, 31))
+
+        self.borrow_date_input.setFixedSize(FIELD_W, FIELD_H)
+        self.borrow_date_input.setStyleSheet(date_style)
+        self.borrow_date_input.setDisplayFormat("yyyy-MM-dd")
+        add_field("Borrow Date", self.borrow_date_input)
+
+        # DUE DATE - Starts completely blank   🔹 CHANGED
+        self.due_date_input = QDateEdit()
+        self.due_date_input.setCalendarPopup(True)
+
+        self.due_date_input.setSpecialValueText(" ")      # stays
+        self.due_date_input.setDate(QDate())              # 🔹 CHANGED (clear date)
+
+        # REMOVE minimum/maximum limits completely  🔹 REMOVED
+        # self.due_date_input.setMinimumDate(QDate(2000, 1, 1))
+
+        self.due_date_input.setFixedSize(FIELD_W, FIELD_H)
+        self.due_date_input.setStyleSheet(date_style)
+        self.due_date_input.setDisplayFormat("yyyy-MM-dd")
+        add_field("Due Date", self.due_date_input)
+
 
         # Center the form container
         container_layout = QHBoxLayout()
@@ -141,7 +186,7 @@ class AddMemberDialog(QDialog):
 
         layout.addSpacing(30)
 
-        # Buttons - matching book dialog button style
+        # Buttons - matching other dialog button style
         button_layout = QHBoxLayout()
         button_layout.setSpacing(30)
         button_layout.addStretch()
@@ -163,7 +208,7 @@ class AddMemberDialog(QDialog):
                 background-color: #A3B087;
             }
         """)
-        save_btn.clicked.connect(self.save_member)
+        save_btn.clicked.connect(self.save_borrow)
         button_layout.addWidget(save_btn)
 
         cancel_btn = QPushButton("Cancel")
@@ -189,70 +234,98 @@ class AddMemberDialog(QDialog):
         button_layout.addStretch()
         layout.addLayout(button_layout)
 
-    def save_member(self):
-        """Save new member to database"""
-        full_name = self.fullname_input.text().strip()
-        email = self.email_input.text().strip()
-        mobile = self.mobile_input.text().strip()
+    def save_borrow(self):
+        """Save new borrowing transaction to database (clean, DB-managed timestamps)."""
+        book_id = self.book_id_input.text().strip()
+        member_id = self.member_id_input.text().strip()
+
+        # Get the borrow date
+        borrow_date_qdate = self.borrow_date_input.date()
         
-        # Validation
-        if not all([full_name, email, mobile]):
-            QMessageBox.warning(self, "Error", "All fields are required")
+        # Get the due date - check if it's still at the special blank value
+        due_date_qdate = self.due_date_input.date()
+        
+        # Check if due date is still blank (at minimum date)
+        if due_date_qdate == QDate(2000, 1, 1):
+            QMessageBox.warning(self, "Error", "Please set a due date")
             return
-        
-        # Email validation
-        if "@" not in email or "." not in email:
-            QMessageBox.warning(self, "Error", "Please enter a valid email address")
-            return
-        
-        # Check if email already exists
-        check_query = "SELECT member_id FROM members WHERE email = %s"
-        existing = self.db.fetch_one(check_query, (email,))
-        if existing:
-            QMessageBox.warning(self, "Error", "Email already exists in the system")
-            return
-        
-        # Generate member ID
-        last_member = self.db.fetch_one("SELECT member_id FROM members ORDER BY member_id DESC LIMIT 1")
-        if last_member:
-            last_num = int(last_member['member_id'].split('-')[1])
-            member_id = f"MEM-{last_num + 1:03d}"
-        else:
-            member_id = "MEM-001"
-        
-        # Insert into database
+
+        # Create full datetime strings (YYYY-MM-DD HH:MM:SS)
         now = datetime.now()
-        query = """
-        INSERT INTO members (member_id, full_name, email, mobile_number, status, borrowed_books, added_at, updated_at)
-        VALUES (%s, %s, %s, %s, 'Active', 0, %s, %s)
-        """
+        now_time_str = now.strftime("%H:%M:%S")
         
-        if self.db.execute_query(query, (member_id, full_name, email, mobile, now, now)):
-            QMessageBox.information(self, "Success", f"Member added successfully!\n\nMember ID: {member_id}")
+        borrow_date = f"{borrow_date_qdate.toString('yyyy-MM-dd')} {now_time_str}"
+        due_date = f"{due_date_qdate.toString('yyyy-MM-dd')} {now_time_str}"
+
+        # Validation
+        if not all([book_id, member_id]):
+            QMessageBox.warning(self, "Error", "Book ID and Member ID are required")
+            return
+
+        # Check if book exists and is available
+        book_query = "SELECT book_id, status, title FROM books WHERE book_id = %s"
+        book = self.db.fetch_one(book_query, (book_id,))
+        if not book:
+            QMessageBox.warning(self, "Error", f"Book ID '{book_id}' does not exist")
+            return
+        if book['status'] != 'Available':
+            QMessageBox.warning(self, "Error", f"Book '{book['title']}' is not available for borrowing")
+            return
+
+        # Check if member exists and is active
+        member_query = "SELECT member_id, status, full_name FROM members WHERE member_id = %s"
+        member = self.db.fetch_one(member_query, (member_id,))
+        if not member:
+            QMessageBox.warning(self, "Error", f"Member ID '{member_id}' does not exist")
+            return
+        if member['status'] != 'Active':
+            QMessageBox.warning(self, "Error", f"Member '{member['full_name']}' is not active")
+            return
+
+        # Insert into database — do NOT set updated_at manually; DB will handle it.
+        query = """
+        INSERT INTO borrowed_books (book_id, member_id, borrow_date, due_date, return_date, status, fine_amount)
+        VALUES (%s, %s, %s, %s, NULL, 'Borrowed', 0.00)
+        """
+
+        if self.db.execute_query(query, (book_id, member_id, borrow_date, due_date)):
+            # Update book status to Borrowed — let DB update timestamps automatically
+            update_book_query = "UPDATE books SET status = 'Borrowed' WHERE book_id = %s"
+            self.db.execute_query(update_book_query, (book_id,))
+
+            QMessageBox.information(
+                self,
+                "Success",
+                f"Transaction added successfully!\n\n"
+                f"Book: {book['title']}\n"
+                f"Member: {member['full_name']}\n"
+                f"Due Date: {due_date_qdate.toString('yyyy-MM-dd')}"
+            )
             if self.callback:
                 self.callback()
             self.accept()
         else:
-            QMessageBox.critical(self, "Error", "Failed to add member to database")
+            QMessageBox.critical(self, "Error", "Failed to add transaction to database")
 
-class ViewMemberDialog(QDialog):
-    """Dialog for viewing member details - matches ViewBookDialog design"""
+
+class ViewBorrowDialog(QDialog):
+    """Dialog for viewing borrowing transaction details - matches ViewMemberDialog design"""
     
-    def __init__(self, parent=None, member_data=None):
+    def __init__(self, parent=None, borrow_data=None):
         super().__init__(parent)
-        self.member_data = member_data
+        self.borrow_data = borrow_data
         
-        # Same window setup as ViewBookDialog
+        # Same window setup as ViewMemberDialog
         self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, False)
         self.setWindowFlag(Qt.WindowType.MSWindowsFixedSizeDialogHint)
-        self.setFixedSize(800, 700)
+        self.setFixedSize(800, 750)
         self.move(QApplication.primaryScreen().geometry().center() - self.rect().center())
         
-        self.setWindowTitle("Curatel - Patron Management")
+        self.setWindowTitle("Curatel - Circulation Management")
         self.setup_ui()
     
     def create_header(self, text):
-        """Create header matching ViewBookDialog style"""
+        """Create header matching other view dialog styles"""
         header = QWidget()
         header.setFixedHeight(80)
         header.setStyleSheet("""
@@ -278,7 +351,7 @@ class ViewMemberDialog(QDialog):
         return header
 
     def setup_ui(self):
-        """Setup view member UI matching ViewBookDialog"""
+        """Setup view transaction UI matching ViewMemberDialog"""
         # Set dialog background
         self.setStyleSheet("background-color: #8B7E66;")
         
@@ -287,13 +360,13 @@ class ViewMemberDialog(QDialog):
         layout.setSpacing(0)
 
         # Header
-        header = self.create_header("MEMBER INFORMATION")
+        header = self.create_header("TRANSACTION INFORMATION")
         layout.addWidget(header)
         layout.addSpacing(40)
 
         # Main frame container
         info_container = QWidget()
-        info_container.setFixedSize(600, 450)
+        info_container.setFixedSize(600, 500)
         info_container.setStyleSheet("""
             background: transparent;
             border: 3px solid white;
@@ -347,20 +420,25 @@ class ViewMemberDialog(QDialog):
 
             info_layout.addWidget(row)
 
-        # Display member fields
-        add_field("Member ID:", self.member_data.get('member_id', ''))
-        add_field("Full Name:", self.member_data.get('full_name', ''))
-        add_field("Email:", self.member_data.get('email', ''))
-        add_field("Mobile Number:", self.member_data.get('mobile_number', ''))
-        add_field("Status:", self.member_data.get('status', ''))
-        add_field("Borrowed Books:", self.member_data.get('borrowed_books', '0'))
-
+        # Display transaction fields
+        add_field("Book ID:", self.borrow_data.get('book_id', ''))
+        add_field("Book Title:", self.borrow_data.get('book_title', 'Unknown'))
+        add_field("Member ID:", self.borrow_data.get('member_id', ''))
+        add_field("Member Name:", self.borrow_data.get('member_name', 'Unknown'))
+        
         # Format dates
-        added_at = str(self.member_data.get('added_at', '')).split()[0] if self.member_data.get('added_at') else ''
-        updated_at = str(self.member_data.get('updated_at', '')).split()[0] if self.member_data.get('updated_at') else ''
-
-        add_field("Added At:", added_at)
-        add_field("Updated At:", updated_at)
+        borrow_date = str(self.borrow_data.get('borrow_date', ''))
+        due_date = str(self.borrow_data.get('due_date', ''))
+        return_date = str(self.borrow_data.get('return_date', '')) if self.borrow_data.get('return_date') else 'Not Returned'
+        
+        add_field("Borrow Date:", borrow_date)
+        add_field("Due Date:", due_date)
+        add_field("Return Date:", return_date)
+        add_field("Status:", self.borrow_data.get('status', ''))
+        
+        # Format fine amount
+        fine = f"₱{float(self.borrow_data.get('fine_amount', 0)):.2f}"
+        add_field("Fine Amount:", fine)
 
         # Center the container
         container_layout = QHBoxLayout()
@@ -371,7 +449,7 @@ class ViewMemberDialog(QDialog):
 
         layout.addSpacing(40)
 
-        # Close button matching ViewBookDialog
+        # Close button matching other view dialogs
         button_layout = QHBoxLayout()
         button_layout.addStretch()
 
@@ -399,26 +477,27 @@ class ViewMemberDialog(QDialog):
 
         layout.addLayout(button_layout)
 
-class UpdateMemberDialog(QDialog):
-    """Dialog for updating member information - matches UpdateBookDialog design"""
 
-    def __init__(self, parent=None, db=None, member_data=None, callback=None):
+class UpdateBorrowDialog(QDialog):
+    """Dialog for updating borrowing transaction - matches UpdateMemberDialog design"""
+
+    def __init__(self, parent=None, db=None, borrow_data=None, callback=None):
         super().__init__(parent)
         self.db = db
-        self.member_data = member_data
+        self.borrow_data = borrow_data
         self.callback = callback
 
-        # Same window setup as UpdateBookDialog
+        # Same window setup as UpdateMemberDialog
         self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, False)
         self.setWindowFlag(Qt.WindowType.MSWindowsFixedSizeDialogHint)
-        self.setFixedSize(800, 700)
+        self.setFixedSize(750, 700)
         self.move(QApplication.primaryScreen().geometry().center() - self.rect().center())
-        self.setWindowTitle("Curatel - Patron Management")
+        self.setWindowTitle("Curatel - Circulation Management")
 
         self.setup_ui()
 
     def create_header(self, text):
-        """Create header matching UpdateBookDialog style"""
+        """Create header matching other update dialog styles"""
         header = QWidget()
         header.setFixedHeight(80)
         header.setStyleSheet("""
@@ -444,7 +523,7 @@ class UpdateMemberDialog(QDialog):
         return header
 
     def setup_ui(self):
-        """Setup update member UI matching UpdateBookDialog"""
+        """Setup update transaction UI matching UpdateMemberDialog"""
         # Set dialog background
         self.setStyleSheet("background-color: #8B7E66;")
         
@@ -453,13 +532,14 @@ class UpdateMemberDialog(QDialog):
         layout.setSpacing(0)
 
         # Header
-        header = self.create_header("UPDATE MEMBER")
+        layout.addSpacing(-30)
+        header = self.create_header("UPDATE TRANSACTION")
         layout.addWidget(header)
-        layout.addSpacing(40)
+        layout.addSpacing(30)
 
         # Frame container
         form_container = QWidget()
-        form_container.setFixedSize(600, 450)
+        form_container.setFixedSize(600, 350)
         form_container.setStyleSheet("""
             background: transparent;
             border: 3px solid white;
@@ -476,6 +556,25 @@ class UpdateMemberDialog(QDialog):
             color: white;
             border: none;
             background: transparent;
+        """
+
+        date_style = """
+            QDateEdit {
+                font-family: Montserrat;
+                font-size: 13px;
+                border: 1px solid #8B7E66;
+                border-radius: 10px;
+                padding: 8px;
+                background-color: white;
+                color: black;
+            }
+            QDateEdit:focus {
+                border: 2px solid #6B5E46;
+            }
+            QDateEdit::drop-down {
+                border: none;
+                padding-right: 10px;
+            }
         """
 
         input_style = """
@@ -532,35 +631,37 @@ class UpdateMemberDialog(QDialog):
             form_layout.addWidget(label)
             form_layout.addWidget(widget)
 
-        # FULL NAME
-        self.fullname_input = QLineEdit()
-        self.fullname_input.setText(self.member_data.get('full_name', ''))
-        self.fullname_input.setFixedSize(FIELD_W, FIELD_H)
-        self.fullname_input.setStyleSheet(input_style)
-        add_field("Full Name", self.fullname_input)
-
-        # EMAIL
-        self.email_input = QLineEdit()
-        self.email_input.setText(self.member_data.get('email', ''))
-        self.email_input.setFixedSize(FIELD_W, FIELD_H)
-        self.email_input.setStyleSheet(input_style)
-        add_field("Email", self.email_input)
-
-        # MOBILE NUMBER
-        self.mobile_input = QLineEdit()
-        self.mobile_input.setText(self.member_data.get('mobile_number', ''))
-        self.mobile_input.setFixedSize(FIELD_W, FIELD_H)
-        self.mobile_input.setStyleSheet(input_style)
-        add_field("Mobile Number (+63)", self.mobile_input)
+        # RETURN DATE
+        self.return_date_input = QLineEdit()
+        self.return_date_input.setPlaceholderText("YY-MM-DD")
+        if self.borrow_data.get('return_date'):
+            return_date_str = str(self.borrow_data.get('return_date'))
+            self.return_date_input.setText(return_date_str.split()[0])
+        self.return_date_input.setFixedSize(FIELD_W, FIELD_H)
+        self.return_date_input.setStyleSheet(input_style)
+        add_field("Return Date", self.return_date_input)
 
         # STATUS
         self.status_combo = QComboBox()
-        self.status_combo.addItems(["Active", "Inactive"])
-        current_status = self.member_data.get('status', 'Active')
+        self.status_combo.addItems(["Borrowed", "Returned", "Overdue", "Lost"])
+        current_status = self.borrow_data.get('status', 'Borrowed')
         self.status_combo.setCurrentText(current_status)
         self.status_combo.setFixedSize(FIELD_W, FIELD_H)
         self.status_combo.setStyleSheet(combo_style)
         add_field("Status", self.status_combo)
+
+        # FINE AMOUNT - Starts blank with "0.00" placeholder
+        self.fine_input = QLineEdit()
+        # Only show existing fine if it's greater than 0
+        current_fine = float(self.borrow_data.get('fine_amount', 0))
+        if current_fine > 0:
+            self.fine_input.setText(f"{current_fine:.2f}")
+        else:
+            # Leave blank with placeholder
+            self.fine_input.setPlaceholderText("0.00")
+        self.fine_input.setFixedSize(FIELD_W, FIELD_H)
+        self.fine_input.setStyleSheet(input_style)
+        add_field("Fine Amount (₱)", self.fine_input)
 
         # Center frame
         container_layout = QHBoxLayout()
@@ -593,7 +694,7 @@ class UpdateMemberDialog(QDialog):
                 background-color: #A3B087;
             }
         """)
-        update_btn.clicked.connect(self.update_member)
+        update_btn.clicked.connect(self.update_borrow)
         button_layout.addWidget(update_btn)
 
         cancel_btn = QPushButton("Cancel")
@@ -620,54 +721,81 @@ class UpdateMemberDialog(QDialog):
         button_layout.addStretch()
         layout.addLayout(button_layout)
 
-    def update_member(self):
-        """Update member in database"""
-        full_name = self.fullname_input.text().strip()
-        email = self.email_input.text().strip()
-        mobile = self.mobile_input.text().strip()
-        status = self.status_combo.currentText()
-
-        # Validation
-        if not all([full_name, email, mobile]):
-            QMessageBox.warning(self, "Error", "All fields are required")
-            return
+    def update_borrow(self):
+        """Update borrowing transaction in database (sets return_date, status, fine; DB handles timestamps)."""
         
-        # Email validation
-        if "@" not in email or "." not in email:
-            QMessageBox.warning(self, "Error", "Please enter a valid email address")
-            return
+        # Get the return date from QLineEdit
+        return_date_text = self.return_date_input.text().strip()
         
-        # Check if email exists for another member
-        check_query = "SELECT member_id FROM members WHERE email = %s AND member_id != %s"
-        existing = self.db.fetch_one(check_query, (email, self.member_data['member_id']))
-        if existing:
-            QMessageBox.warning(self, "Error", "Email already exists for another member")
-            return
-
-        now = datetime.now()
-        query = """
-        UPDATE members 
-        SET full_name = %s, email = %s, mobile_number = %s, status = %s, updated_at = %s
-        WHERE member_id = %s
-        """
-
-        if self.db.execute_query(query, (full_name, email, mobile, status, now, self.member_data['member_id'])):
-            QMessageBox.information(self, "Success", "Member updated successfully!")
-            if self.callback:
-                self.callback()
-            self.accept()
+        if return_date_text:
+            # Try to parse the date
+            try:
+                return_date_dt = datetime.strptime(return_date_text, "%Y-%m-%d")
+                now = datetime.now()
+                return_date = f"{return_date_dt.strftime('%Y-%m-%d')} {now.strftime('%H:%M:%S')}"
+            except ValueError:
+                QMessageBox.warning(self, "Error", "Return date must be in YYYY-MM-DD format")
+                return
         else:
-            QMessageBox.critical(self, "Error", "Failed to update member")
+            return_date = None  # Keep NULL if blank
 
-class ConfirmDeleteMemberDialog(QDialog):
-    """Confirmation dialog for deleting a member - matches ConfirmDeleteDialog design"""
+        status = self.status_combo.currentText()
+        fine_text = self.fine_input.text().strip()
 
-    def __init__(self, parent=None, member_name=""):
+        # Validate fine amount
+        if not fine_text:
+            fine = 0.00
+        else:
+            try:
+                fine = float(fine_text)
+                if fine < 0:
+                    QMessageBox.warning(self, "Error", "Fine amount cannot be negative")
+                    return
+            except ValueError:
+                QMessageBox.warning(self, "Error", "Please enter a valid fine amount")
+                return
+
+        book_id = self.borrow_data.get('book_id')
+        current_status = self.borrow_data.get('status')
+
+        # Update book status if needed
+        try:
+            if status == 'Returned' and current_status != 'Returned':
+                self.db.execute_query("UPDATE books SET status = 'Available' WHERE book_id = %s", (book_id,))
+            elif status != 'Returned' and current_status == 'Returned':
+                self.db.execute_query("UPDATE books SET status = 'Borrowed' WHERE book_id = %s", (book_id,))
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to update book status:\n{e}")
+            return
+
+        # Update borrowed_books
+        try:
+            query = """
+                UPDATE borrowed_books
+                SET return_date = %s, status = %s, fine_amount = %s
+                WHERE borrow_id = %s
+            """
+            success = self.db.execute_query(query, (return_date, status, fine, self.borrow_data['borrow_id']))
+            if success:
+                QMessageBox.information(self, "Success", "Transaction updated successfully!")
+                if self.callback:
+                    self.callback()
+                self.accept()
+            else:
+                QMessageBox.critical(self, "Error", "Failed to update transaction")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Database error:\n{e}")
+
+class ConfirmDeleteBorrowDialog(QDialog):
+    """Confirmation dialog for deleting a borrowing transaction - matches ConfirmDeleteMemberDialog design"""
+
+    def __init__(self, parent=None, book_id="", member_id=""):
         super().__init__(parent)
-        self.member_name = member_name
+        self.book_id = book_id
+        self.member_id = member_id
 
-        # Same window setup as ConfirmDeleteDialog
-        self.setWindowTitle("Curatel - Patron Management")
+        # Same window setup as other confirm delete dialogs
+        self.setWindowTitle("Curatel - Circulation Management")
         self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, False)
         self.setWindowFlag(Qt.WindowType.MSWindowsFixedSizeDialogHint)
         self.setFixedSize(800, 500)
@@ -679,7 +807,7 @@ class ConfirmDeleteMemberDialog(QDialog):
         self.setup_ui()
 
     def setup_ui(self):
-        """Setup UI matching ConfirmDeleteDialog"""
+        """Setup UI matching other confirm delete dialogs"""
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 30)
         layout.setSpacing(0)
@@ -692,7 +820,7 @@ class ConfirmDeleteMemberDialog(QDialog):
         header_layout.setContentsMargins(0, 0, 0, 0)
         header_layout.setSpacing(0)
 
-        header_label = QLabel("CONFIRM DELETE MEMBER")
+        header_label = QLabel("CONFIRM DELETE TRANSACTION")
         header_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         header_label.setStyleSheet("""
             font-family: Montserrat;
@@ -717,7 +845,7 @@ class ConfirmDeleteMemberDialog(QDialog):
         frame_layout.setContentsMargins(30, 20, 30, 20)
         frame_layout.setSpacing(20)
 
-        message = QLabel(f"Are you sure you want to permanently delete\n'{self.member_name}'?")
+        message = QLabel(f"Are you sure you want to permanently delete:\nBook: {self.book_id} | Member: {self.member_id}?")
         message.setAlignment(Qt.AlignmentFlag.AlignCenter)
         message.setWordWrap(True)
         message.setStyleSheet("""
@@ -740,7 +868,7 @@ class ConfirmDeleteMemberDialog(QDialog):
 
         layout.addSpacing(40)
 
-        # Buttons matching ConfirmDeleteDialog
+        # Buttons matching other confirm delete dialogs
         buttons_layout = QHBoxLayout()
         buttons_layout.addStretch()
         buttons_layout.setSpacing(30)
