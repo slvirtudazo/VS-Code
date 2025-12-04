@@ -32,7 +32,7 @@ class CatalogManagement(QMainWindow):
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         central_widget.mousePressEvent = self.clear_selection
-        central_widget.setStyleSheet("background-color: #C9B8A8;")
+        central_widget.setStyleSheet("background-color: white;")
         
         main_layout = QVBoxLayout(central_widget)
         main_layout.setContentsMargins(40, 20, 40, 30)
@@ -83,7 +83,7 @@ class CatalogManagement(QMainWindow):
         self.search_input.setFixedHeight(40)
         self.search_input.textChanged.connect(self.filter_books)
         search_layout.addWidget(self.search_input)
-        search_layout.addSpacing(200)                # Space between search bar and category
+        search_layout.addSpacing(50)                # Space between search bar and category
         
         category_label = QLabel("Category")
         category_label.setFont(QFont("Montserrat", 10))
@@ -117,13 +117,12 @@ class CatalogManagement(QMainWindow):
         self.category_combo.setFixedSize(120, 40)
         self.category_combo.currentTextChanged.connect(self.filter_books)
         search_layout.addWidget(self.category_combo)
-        search_layout.addSpacing(50)                    # Space between two combo box
+        search_layout.addSpacing(30)                    # Space between two combo box
         
         status_label = QLabel("Status")
         status_label.setFont(QFont("Montserrat", 10))
         status_label.setStyleSheet("color: #000000;")
         search_layout.addWidget(status_label)
-        
         self.status_combo = QComboBox()
         self.status_combo.addItems(["All", "Available", "Borrowed"])
         self.status_combo.setStyleSheet("""
@@ -149,7 +148,7 @@ class CatalogManagement(QMainWindow):
         self.status_combo.setFixedSize(120, 40)
         self.status_combo.currentTextChanged.connect(self.filter_books)
         search_layout.addWidget(self.status_combo)
-        
+        search_layout.addStretch()
         main_layout.addLayout(search_layout)
         main_layout.addSpacing(5)
         

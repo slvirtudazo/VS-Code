@@ -32,7 +32,7 @@ class CirculationManagement(QMainWindow):
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         central_widget.mousePressEvent = self.clear_selection
-        central_widget.setStyleSheet("background-color: #C9B8A8;")
+        central_widget.setStyleSheet("background-color: white;")
         
         main_layout = QVBoxLayout(central_widget)
         main_layout.setContentsMargins(40, 20, 40, 30)
@@ -58,7 +58,7 @@ class CirculationManagement(QMainWindow):
         
         main_layout.addLayout(header_layout)
         
-        # Search and filter section - no category, just search and status
+        # Search and filter section
         search_layout = QHBoxLayout()
         
         self.search_input = QLineEdit()
@@ -83,7 +83,7 @@ class CirculationManagement(QMainWindow):
         self.search_input.setFixedHeight(40)
         self.search_input.textChanged.connect(self.filter_borrows)
         search_layout.addWidget(self.search_input)
-        search_layout.addSpacing(20)
+        search_layout.addSpacing(50)
         
         status_label = QLabel("Status")
         status_label.setFont(QFont("Montserrat", 10))
@@ -91,7 +91,7 @@ class CirculationManagement(QMainWindow):
         search_layout.addWidget(status_label)
         
         self.status_combo = QComboBox()
-        self.status_combo.addItems(["All", "Borrowed", "Returned", "Overdue", "Lost"])
+        self.status_combo.addItems(["All", "Borrowed", "Returned", "Overdue"])
         self.status_combo.setStyleSheet("""
             QComboBox {
                 border: 2px solid #8B7E66;
@@ -115,7 +115,6 @@ class CirculationManagement(QMainWindow):
         self.status_combo.setFixedSize(120, 40)
         self.status_combo.currentTextChanged.connect(self.filter_borrows)
         search_layout.addWidget(self.status_combo)
-        
         search_layout.addStretch()
         main_layout.addLayout(search_layout)
         main_layout.addSpacing(5)
@@ -391,12 +390,10 @@ class CirculationManagement(QMainWindow):
             item.setFont(QFont("Montserrat", 10))
             item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
             if borrow['status'] == 'Borrowed':
-                item.setForeground(QColor("#007BFF"))
+                item.setForeground(QColor("#FFA500"))
             elif borrow['status'] == 'Returned':
                 item.setForeground(QColor("#228C3A"))
             elif borrow['status'] == 'Overdue':
-                item.setForeground(QColor("#FFA500"))
-            elif borrow['status'] == 'Lost':
                 item.setForeground(QColor("#DC3545"))
             self.borrows_table.setItem(row, 6, item)
             

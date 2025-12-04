@@ -33,7 +33,7 @@ class PatronManagement(QMainWindow):
         self.setCentralWidget(central_widget)
         # Clear selection when clicking empty space
         central_widget.mousePressEvent = self.clear_selection
-        central_widget.setStyleSheet("background-color: #C9B8A8;")
+        central_widget.setStyleSheet("background-color: white;")
         
         main_layout = QVBoxLayout(central_widget)
         # Same margins as catalog management
@@ -60,10 +60,9 @@ class PatronManagement(QMainWindow):
         
         main_layout.addLayout(header_layout)
         
-        # Search and filter section - matches catalog management
+        # Search and filter section
         search_layout = QHBoxLayout()
         
-        # Search input with same styling
         self.search_input = QLineEdit()
         self.search_input.setPlaceholderText("Search by id, name, email, or mobile number")
         self.search_input.setStyleSheet("""
@@ -86,7 +85,7 @@ class PatronManagement(QMainWindow):
         self.search_input.setFixedHeight(40)
         self.search_input.textChanged.connect(self.filter_members)
         search_layout.addWidget(self.search_input)
-        search_layout.addSpacing(300)                # Space between search bar and status
+        search_layout.addSpacing(50)                # Space between search bar and status
         
         # Status
         status_label = QLabel("Status")
@@ -119,7 +118,7 @@ class PatronManagement(QMainWindow):
         self.status_combo.setFixedSize(120, 40)
         self.status_combo.currentTextChanged.connect(self.filter_members)
         search_layout.addWidget(self.status_combo)
-        
+        search_layout.addStretch()
         main_layout.addLayout(search_layout)
         main_layout.addSpacing(5)
         

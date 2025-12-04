@@ -228,7 +228,7 @@ class Dashboard(QMainWindow):
     
     def open_reports_analytics(self):
         try:
-            from curatel_lms.ui.reports_analytics import ReportsAnalytics
+            from curatel_lms.ui.library_reports import ReportsAnalytics
             self.reports_window = ReportsAnalytics(self.db)
             self.reports_window.show()
         except Exception as e:

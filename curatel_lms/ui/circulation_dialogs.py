@@ -643,7 +643,7 @@ class UpdateBorrowDialog(QDialog):
 
         # STATUS
         self.status_combo = QComboBox()
-        self.status_combo.addItems(["Borrowed", "Returned", "Overdue", "Lost"])
+        self.status_combo.addItems(["Borrowed", "Returned", "Overdue"])
         current_status = self.borrow_data.get('status', 'Borrowed')
         self.status_combo.setCurrentText(current_status)
         self.status_combo.setFixedSize(FIELD_W, FIELD_H)
