@@ -487,10 +487,9 @@ class UpdateBorrowDialog(QDialog):
         self.borrow_data = borrow_data
         self.callback = callback
 
-        # Same window setup as UpdateMemberDialog
         self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, False)
         self.setWindowFlag(Qt.WindowType.MSWindowsFixedSizeDialogHint)
-        self.setFixedSize(750, 700)
+        self.setFixedSize(750, 650)
         self.move(QApplication.primaryScreen().geometry().center() - self.rect().center())
         self.setWindowTitle("Curatel - Circulation Management")
 
@@ -532,7 +531,7 @@ class UpdateBorrowDialog(QDialog):
         layout.setSpacing(0)
 
         # Header
-        layout.addSpacing(-30)
+        layout.addSpacing(-35)
         header = self.create_header("UPDATE TRANSACTION")
         layout.addWidget(header)
         layout.addSpacing(30)
