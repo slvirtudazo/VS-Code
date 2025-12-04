@@ -1,4 +1,4 @@
-# ui/dialogs.py
+# ui/catalog_dialogs.py
 
 from PyQt6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel, QWidget, QSizePolicy, 
                               QLineEdit, QPushButton, QComboBox, QMessageBox, QApplication)
@@ -236,7 +236,6 @@ class AddBookDialog(BaseDialog):
                 background-color: white;
                 color: black;
             }
-
             QComboBox::drop-down {
                 subcontrol-origin: padding;
                 subcontrol-position: top right;
@@ -286,11 +285,9 @@ class AddBookDialog(BaseDialog):
 
         # CATEGORY
         self.category_combo = QComboBox()
-        self.category_combo.addItems([
-            "All", "Adventure", "Art", "Biography", "Business", "Cooking",
-            "Fantasy", "Fiction", "History", "Horror", "Mystery",
-            "Non-Fiction", "Poetry", "Romance", "Science", "Technology"
-        ])
+        self.category_combo.addItems(["Adventure", "Art", "Biography", "Business", 
+                                    "Cooking", "Fantasy", "Fiction", "History", "Horror", 
+                                    "Mystery", "Non-Fiction", "Poetry", "Romance", "Science", "Technology"])
         self.category_combo.setFixedSize(FIELD_W, FIELD_H)
         self.category_combo.setStyleSheet(combo_style)
         add_field("Category", self.category_combo)
@@ -676,17 +673,10 @@ class UpdateBookDialog(BaseDialog):
 
         # CATEGORY
         self.category_combo = QComboBox()
-        categories = [
-            "Adventure", "Art", "Biography", "Business", "Cooking",
-            "Fantasy", "Fiction", "History", "Horror", "Mystery",
-            "Non-Fiction", "Poetry", "Romance", "Science", "Technology"
-        ]
-        self.category_combo.addItems(categories)
-
-        current_category = self.book_data.get('category', '')
-        if current_category in categories:
-            self.category_combo.setCurrentText(current_category)
-
+        self.category_combo.addItems(["Adventure", "Art", "Biography", "Business", 
+                                    "Cooking", "Fantasy", "Fiction", "History", "Horror", 
+                                    "Mystery", "Non-Fiction", "Poetry", "Romance", "Science", "Technology"])
+        self.category_combo.setCurrentText(self.book_data.get('category', 'Fiction'))
         self.category_combo.setFixedSize(FIELD_W, FIELD_H)
         self.category_combo.setStyleSheet(combo_style)
         add_field("Category", self.category_combo)
