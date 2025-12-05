@@ -78,7 +78,7 @@ class Dashboard(QMainWindow):
         line.setFrameShape(QFrame.Shape.HLine)
         line.setFrameShadow(QFrame.Shadow.Plain)
         line.setStyleSheet("color: #6B5E46; background-color: #8B7E66;")
-        line.setFixedHeight(3)
+        line.setFixedHeight(2)
         main_layout.addSpacing(5)
         main_layout.addWidget(line)
 
@@ -124,7 +124,7 @@ class Dashboard(QMainWindow):
 
         row2_layout.addSpacing(70)
         
-        reports_btn = self.create_menu_card("Reports and Analytics", "Activity Overview & Patterns", img_reports)
+        reports_btn = self.create_menu_card("Library Reports", "Activity Overview & Patterns", img_reports)
         reports_btn.clicked.connect(self.open_reports_analytics)
         row2_layout.addWidget(reports_btn)
         row2_layout.addStretch()  
@@ -146,7 +146,7 @@ class Dashboard(QMainWindow):
         btn.setStyleSheet("""
             QPushButton {
                 background-color: transparent;
-                border: 3px solid #8B7E66;
+                border: 1.5px solid #8B7E66;
                 border-radius: 20px;
                 text-align: left;
                 padding: 0px;
@@ -154,7 +154,7 @@ class Dashboard(QMainWindow):
             }
             QPushButton:hover {
                 background-color: rgba(201, 184, 168, 0.3);
-                border: 3px solid #6B5E46;
+                border: 1.5px solid #6B5E46;
             }
         """)
 

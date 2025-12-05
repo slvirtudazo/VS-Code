@@ -6,17 +6,20 @@ from PyQt6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLa
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QColor
 
-# Import the dialogs
 from curatel_lms.ui.circulation_dialogs import (AddBorrowDialog, ViewBorrowDialog, 
                                                  UpdateBorrowDialog, ConfirmDeleteBorrowDialog)
 
 class CirculationManagement(QMainWindow):
-    """Circulation Management screen - manages book borrowing transactions"""
+    """Circulation Management screen"""
     
     def __init__(self, db=None):
         super().__init__()
         self.db = db
-        self.all_borrows = []  # Store all borrowing records for filtering
+        self.all_borrows = []
+        self.filtered_borrows = []  # Store filtered data separately
+        self.selected_borrow_id = None
+        self.sort_column = None
+        self.sort_order = Qt.SortOrder.AscendingOrder
         self.setWindowTitle("Curatel - Circulation Management")
         try:
             self.setup_ui()
@@ -26,9 +29,10 @@ class CirculationManagement(QMainWindow):
             print(f"[ERROR] Failed to setup Circulation Management: {e}")
             import traceback
             traceback.print_exc()
+            QMessageBox.critical(self, "Error", f"Failed to initialize Circulation Management:\n{str(e)}")
     
     def setup_ui(self):
-        """Setup UI matching patron management design"""
+        """Setup UI"""
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         central_widget.mousePressEvent = self.clear_selection
@@ -149,7 +153,7 @@ class CirculationManagement(QMainWindow):
                 border: none;
             }
             QHeaderView::section:hover {
-                background-color: #D9CFC2;
+                background-color: #7A6D55;
             }
             QTableWidget::item:hover {
                 background-color: #D9CFC2;
@@ -164,45 +168,35 @@ class CirculationManagement(QMainWindow):
         """)
         
         header = self.borrows_table.horizontalHeader()
-        header.setSectionResizeMode(QHeaderView.ResizeMode.Fixed)
+        header.setSectionResizeMode(QHeaderView.ResizeMode.Interactive)
         self.borrows_table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Fixed)
-        header.setSectionsClickable(False)
-        header.setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionsClickable(True)
         header.setStretchLastSection(True)
         header.setSectionsMovable(True)
         header.setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
+        header.sectionClicked.connect(self.handle_header_click)
         
-        # Column width resize
-        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Interactive)
-        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Interactive)
-        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Interactive)
-        header.setSectionResizeMode(3, QHeaderView.ResizeMode.Interactive)
-        header.setSectionResizeMode(4, QHeaderView.ResizeMode.Interactive)
-        header.setSectionResizeMode(5, QHeaderView.ResizeMode.Interactive)
-        header.setSectionResizeMode(6, QHeaderView.ResizeMode.Interactive)
-        header.setSectionResizeMode(7, QHeaderView.ResizeMode.Interactive)
-
-        # Set column widths
-        self.borrows_table.setColumnWidth(0, 80)    # Book ID
-        self.borrows_table.setColumnWidth(1, 90)    # Member ID
-        self.borrows_table.setColumnWidth(2, 300)   # Book Title
-        self.borrows_table.setColumnWidth(3, 180)   # Borrow Date
-        self.borrows_table.setColumnWidth(4, 180)   # Due Date
-        self.borrows_table.setColumnWidth(5, 180)   # Return Date
-        self.borrows_table.setColumnWidth(6, 100)   # Status
-        self.borrows_table.setColumnWidth(7, 120)   # Fine Amount
-        self.borrows_table.setColumnWidth(8, 180)   # Updated At
-
+        self.borrows_table.setColumnWidth(0, 80)
+        self.borrows_table.setColumnWidth(1, 90)
+        self.borrows_table.setColumnWidth(2, 300)
+        self.borrows_table.setColumnWidth(3, 180)
+        self.borrows_table.setColumnWidth(4, 180)
+        self.borrows_table.setColumnWidth(5, 180)
+        self.borrows_table.setColumnWidth(6, 100)
+        self.borrows_table.setColumnWidth(7, 120)
+        self.borrows_table.setColumnWidth(8, 180)
         
         self.borrows_table.verticalHeader().setVisible(False)
         self.borrows_table.setHorizontalScrollMode(QTableWidget.ScrollMode.ScrollPerPixel)
         self.borrows_table.setVerticalScrollMode(QTableWidget.ScrollMode.ScrollPerPixel)
         self.borrows_table.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        
+        self.borrows_table.itemSelectionChanged.connect(self.on_selection_changed)
 
         main_layout.addWidget(self.borrows_table)
         main_layout.addSpacing(5)
 
-        # Action buttons matching patron management
+        # Action buttons
         action_layout = QHBoxLayout()
         
         add_btn = QPushButton("Add Transaction")
@@ -294,11 +288,28 @@ class CirculationManagement(QMainWindow):
         
         main_layout.addLayout(action_layout)
     
+    def on_selection_changed(self):
+        """Track selected borrow when selection changes"""
+        try:
+            selected_row = self.borrows_table.currentRow()
+            if selected_row >= 0 and selected_row < len(self.filtered_borrows):
+                # Get borrow_id from the filtered data, not the table
+                self.selected_borrow_id = self.filtered_borrows[selected_row]['borrow_id']
+                print(f"[INFO] Selected borrow_id: {self.selected_borrow_id}")
+            else:
+                self.selected_borrow_id = None
+        except Exception as e:
+            print(f"[ERROR] Selection change error: {e}")
+            import traceback
+            traceback.print_exc()
+            self.selected_borrow_id = None
+    
     def clear_selection(self, event):
         """Clear table selection when clicking empty space"""
         try:
             if self.borrows_table:
                 self.borrows_table.clearSelection()
+                self.selected_borrow_id = None
             if hasattr(self, "search_input"):
                 self.search_input.clearFocus()
             if hasattr(self, "status_combo"):
@@ -306,16 +317,29 @@ class CirculationManagement(QMainWindow):
         except Exception as e:
             print(f"[WARN] clear_selection error: {e}")
         QWidget.mousePressEvent(self.centralWidget(), event)
+    
+    def handle_header_click(self, logical_index):
+        """Handle column header click for sorting"""
+        try:
+            if self.sort_column == logical_index:
+                self.sort_order = Qt.SortOrder.DescendingOrder if self.sort_order == Qt.SortOrder.AscendingOrder else Qt.SortOrder.AscendingOrder
+            else:
+                self.sort_column = logical_index
+                self.sort_order = Qt.SortOrder.AscendingOrder
+            
+            self.filter_borrows()
+        except Exception as e:
+            print(f"[ERROR] Header click error: {e}")
+            QMessageBox.warning(self, "Error", "Failed to sort table")
 
     def load_borrows_from_database(self):
-        """Load all borrowing records from database with book titles"""
+        """Load all borrowing records from database"""
         if not self.db or not self.db.connection:
             print("[WARNING] No database connection")
             QMessageBox.warning(self, "Database Error", "Not connected to database.")
             return
         
         try:
-            # Join borrowed_books with books table to get book titles
             query = """
             SELECT bb.*, b.title as book_title 
             FROM borrowed_books bb
@@ -326,133 +350,165 @@ class CirculationManagement(QMainWindow):
             
             if self.all_borrows:
                 print(f"[OK] Loaded {len(self.all_borrows)} borrowing records")
-                self.display_borrows(self.all_borrows)
+                self.filter_borrows()
             else:
                 print("[WARNING] No borrowing records found")
+                self.borrows_table.setRowCount(0)
+                self.filtered_borrows = []
                 
         except Exception as e:
             print(f"[ERROR] Failed to load borrowing records: {e}")
-            QMessageBox.critical(self, "Error", f"Failed to load borrowing records: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            QMessageBox.critical(self, "Error", f"Failed to load borrowing records:\n{str(e)}")
     
     def display_borrows(self, borrows):
         """Display borrowing records in the table"""
-        self.borrows_table.setRowCount(len(borrows))
-        
-        for row, borrow in enumerate(borrows):    
-            # Book ID
-            item = QTableWidgetItem(str(borrow['book_id']))
-            item.setFont(QFont("Montserrat", 10))
-            item.setForeground(QColor("#000000"))
-            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
-            self.borrows_table.setItem(row, 0, item)
+        try:
+            self.borrows_table.setRowCount(len(borrows))
             
-            # Member ID
-            item = QTableWidgetItem(str(borrow['member_id']))
-            item.setFont(QFont("Montserrat", 10))
-            item.setForeground(QColor("#000000"))
-            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
-            self.borrows_table.setItem(row, 1, item)
-            
-            # Book Title
-            book_title = str(borrow.get('book_title', 'Unknown'))
-            item = QTableWidgetItem(book_title)
-            item.setFont(QFont("Montserrat", 10))
-            item.setForeground(QColor("#000000"))
-            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
-            self.borrows_table.setItem(row, 2, item)
-            
-            # Borrow Date
-            borrow_date = str(borrow['borrow_date']) if borrow['borrow_date'] else ""
-            item = QTableWidgetItem(borrow_date)
-            item.setFont(QFont("Montserrat", 10))
-            item.setForeground(QColor("#000000"))
-            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
-            self.borrows_table.setItem(row, 3, item)
-            
-            # Due Date
-            due_date = str(borrow['due_date']) if borrow['due_date'] else ""
-            item = QTableWidgetItem(due_date)
-            item.setFont(QFont("Montserrat", 10))
-            item.setForeground(QColor("#000000"))
-            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
-            self.borrows_table.setItem(row, 4, item)
-            
-            # Return Date
-            return_date = str(borrow['return_date']) if borrow['return_date'] else "Not Returned"
-            item = QTableWidgetItem(return_date)
-            item.setFont(QFont("Montserrat", 10))
-            item.setForeground(QColor("#000000"))
-            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
-            self.borrows_table.setItem(row, 5, item)
-            
-            # Status with color coding
-            item = QTableWidgetItem(str(borrow['status']))
-            item.setFont(QFont("Montserrat", 10))
-            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
-            if borrow['status'] == 'Borrowed':
-                item.setForeground(QColor("#FFA500"))
-            elif borrow['status'] == 'Returned':
-                item.setForeground(QColor("#228C3A"))
-            elif borrow['status'] == 'Overdue':
-                item.setForeground(QColor("#DC3545"))
-            self.borrows_table.setItem(row, 6, item)
-            
-            # Fine Amount
-            fine = f"₱{float(borrow['fine_amount']):.2f}"
-            item = QTableWidgetItem(fine)
-            item.setFont(QFont("Montserrat", 10))
-            item.setForeground(QColor("#000000"))
-            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
-            self.borrows_table.setItem(row, 7, item)
-            
-            # Updated At - Display full datetime matching patron management format
-            updated_at = str(borrow['updated_at']) if borrow['updated_at'] else ""
-            item = QTableWidgetItem(updated_at)
-            item.setFont(QFont("Montserrat", 10))
-            item.setForeground(QColor("#000000"))
-            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
-            self.borrows_table.setItem(row, 8, item)
+            for row, borrow in enumerate(borrows):    
+                # Book ID
+                item = QTableWidgetItem(str(borrow['book_id']))
+                item.setFont(QFont("Montserrat", 10))
+                item.setForeground(QColor("#000000"))
+                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
+                self.borrows_table.setItem(row, 0, item)
+                
+                # Member ID
+                item = QTableWidgetItem(str(borrow['member_id']))
+                item.setFont(QFont("Montserrat", 10))
+                item.setForeground(QColor("#000000"))
+                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
+                self.borrows_table.setItem(row, 1, item)
+                
+                # Book Title
+                book_title = str(borrow.get('book_title', 'Unknown'))
+                item = QTableWidgetItem(book_title)
+                item.setFont(QFont("Montserrat", 10))
+                item.setForeground(QColor("#000000"))
+                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
+                self.borrows_table.setItem(row, 2, item)
+                
+                # Borrow Date
+                borrow_date = str(borrow['borrow_date']) if borrow['borrow_date'] else ""
+                item = QTableWidgetItem(borrow_date)
+                item.setFont(QFont("Montserrat", 10))
+                item.setForeground(QColor("#000000"))
+                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
+                self.borrows_table.setItem(row, 3, item)
+                
+                # Due Date
+                due_date = str(borrow['due_date']) if borrow['due_date'] else ""
+                item = QTableWidgetItem(due_date)
+                item.setFont(QFont("Montserrat", 10))
+                item.setForeground(QColor("#000000"))
+                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
+                self.borrows_table.setItem(row, 4, item)
+                
+                # Return Date
+                return_date = str(borrow['return_date']) if borrow['return_date'] else "Not Returned"
+                item = QTableWidgetItem(return_date)
+                item.setFont(QFont("Montserrat", 10))
+                item.setForeground(QColor("#000000"))
+                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
+                self.borrows_table.setItem(row, 5, item)
+                
+                # Status with color
+                item = QTableWidgetItem(str(borrow['status']))
+                item.setFont(QFont("Montserrat", 10))
+                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
+                if borrow['status'] == 'Borrowed':
+                    item.setForeground(QColor("#FFA500"))
+                elif borrow['status'] == 'Returned':
+                    item.setForeground(QColor("#228C3A"))
+                elif borrow['status'] == 'Overdue':
+                    item.setForeground(QColor("#DC3545"))
+                self.borrows_table.setItem(row, 6, item)
+                
+                # Fine Amount
+                fine = f"₱{float(borrow['fine_amount']):.2f}"
+                item = QTableWidgetItem(fine)
+                item.setFont(QFont("Montserrat", 10))
+                item.setForeground(QColor("#000000"))
+                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
+                self.borrows_table.setItem(row, 7, item)
+                
+                # Updated At
+                updated_at = str(borrow['updated_at']) if borrow['updated_at'] else ""
+                item = QTableWidgetItem(updated_at)
+                item.setFont(QFont("Montserrat", 10))
+                item.setForeground(QColor("#000000"))
+                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
+                self.borrows_table.setItem(row, 8, item)
+        except Exception as e:
+            print(f"[ERROR] Display borrows error: {e}")
+            import traceback
+            traceback.print_exc()
     
     def filter_borrows(self):
         """Filter borrowing records based on search and status"""
-        if not self.all_borrows:
-            return
-        
-        search_text = self.search_input.text().lower().strip()
-        status = self.status_combo.currentText()
-        
-        filtered_borrows = []
-        
-        for borrow in self.all_borrows:
-            # Status filter
-            if status != "All" and borrow['status'] != status:
-                continue
+        try:
+            if not self.all_borrows:
+                self.filtered_borrows = []
+                return
             
-            # Search filter
-            if search_text:
-                book_title = str(borrow.get('book_title', '')).lower()
-                if not (search_text in str(borrow['book_id']).lower() or
-                        search_text in str(borrow['member_id']).lower() or
-                        search_text in book_title):
+            search_text = self.search_input.text().lower().strip()
+            status = self.status_combo.currentText()
+            
+            filtered_borrows = []
+            
+            for borrow in self.all_borrows:
+                if status != "All" and borrow['status'] != status:
                     continue
+                
+                if search_text:
+                    book_title = str(borrow.get('book_title', '')).lower()
+                    if not (search_text in str(borrow['book_id']).lower() or
+                            search_text in str(borrow['member_id']).lower() or
+                            search_text in book_title):
+                        continue
+                
+                filtered_borrows.append(borrow)
             
-            filtered_borrows.append(borrow)
-        
-        self.display_borrows(filtered_borrows)
-        print(f"[INFO] Filtered to {len(filtered_borrows)} borrowing records")
+            # Apply sorting
+            if self.sort_column is not None and filtered_borrows:
+                column_names = ['book_id', 'member_id', 'book_title', 'borrow_date', 'due_date', 'return_date', 'status', 'fine_amount', 'updated_at']
+                if self.sort_column < len(column_names):
+                    sort_key = column_names[self.sort_column]
+                    filtered_borrows.sort(
+                        key=lambda x: str(x.get(sort_key, '')).lower(),
+                        reverse=(self.sort_order == Qt.SortOrder.DescendingOrder)
+                    )
+            
+            # Store filtered data for selection tracking
+            self.filtered_borrows = filtered_borrows
+            
+            self.display_borrows(filtered_borrows)
+            print(f"[INFO] Filtered to {len(filtered_borrows)} borrowing records")
+        except Exception as e:
+            print(f"[ERROR] Filter borrows error: {e}")
+            import traceback
+            traceback.print_exc()
     
     def add_borrow(self):
         """Open add borrowing transaction dialog"""
-        dialog = AddBorrowDialog(self, self.db, self.load_borrows_from_database)
-        dialog.exec()
+        try:
+            dialog = AddBorrowDialog(self, self.db, self.load_borrows_from_database)
+            dialog.exec()
+        except Exception as e:
+            print(f"[ERROR] Add borrow error: {e}")
+            import traceback
+            traceback.print_exc()
+            QMessageBox.critical(self, "Error", "Failed to open add transaction dialog")
     
     def view_borrow(self):
         """View selected borrowing transaction"""
-        selected_row = self.borrows_table.currentRow()
-        if selected_row >= 0:
-            borrow_id = self.all_borrows[selected_row]['borrow_id']
+        try:
+            if not self.selected_borrow_id:
+                QMessageBox.warning(self, "No Selection", "Please select a transaction to view")
+                return
             
-            # Get full borrow data from database
             query = """
             SELECT bb.*, b.title as book_title, m.full_name as member_name
             FROM borrowed_books bb
@@ -460,67 +516,139 @@ class CirculationManagement(QMainWindow):
             LEFT JOIN members m ON bb.member_id = m.member_id
             WHERE bb.borrow_id = %s
             """
-            borrow_data = self.db.fetch_one(query, (borrow_id,))
+            borrow_data = self.db.fetch_one(query, (self.selected_borrow_id,))
             
             if borrow_data:
                 dialog = ViewBorrowDialog(self, borrow_data)
                 dialog.exec()
-        else:
-            QMessageBox.warning(self, "No Selection", "Please select a transaction to view")
+            else:
+                QMessageBox.warning(self, "Error", "Transaction not found in database")
+                self.load_borrows_from_database()
+        except Exception as e:
+            print(f"[ERROR] View borrow error: {e}")
+            import traceback
+            traceback.print_exc()
+            QMessageBox.critical(self, "Error", f"Failed to view transaction:\n{str(e)}")
 
     def update_borrow(self):
-        """Update selected borrowing transaction"""
-        selected_row = self.borrows_table.currentRow()
-        if selected_row >= 0:
-            borrow_id = self.all_borrows[selected_row]['borrow_id']
+        """Open update borrowing transaction dialog"""
+        try:
+            if not self.selected_borrow_id:
+                QMessageBox.warning(self, "No Selection", "Please select a transaction to update")
+                return
             
-            # Get full borrow data from database
-            query = """
-            SELECT bb.*, b.title as book_title, m.full_name as member_name
-            FROM borrowed_books bb
-            LEFT JOIN books b ON bb.book_id = b.book_id
-            LEFT JOIN members m ON bb.member_id = m.member_id
-            WHERE bb.borrow_id = %s
-            """
-            borrow_data = self.db.fetch_one(query, (borrow_id,))
+            # Find the complete borrow data from our filtered_borrows list
+            borrow_data = None
+            for borrow in self.filtered_borrows:
+                if borrow['borrow_id'] == self.selected_borrow_id:
+                    borrow_data = borrow
+                    break
             
-            if borrow_data:
-                dialog = UpdateBorrowDialog(self, self.db, borrow_data, self.load_borrows_from_database)
+            if not borrow_data:
+                QMessageBox.warning(self, "Error", "Transaction data not found")
+                self.load_borrows_from_database()
+                return
+            
+            # Get additional data needed for the dialog
+            # The borrow_data should already contain most fields, but let's ensure we have everything
+            complete_borrow_data = {
+                "borrow_id": borrow_data.get('borrow_id'),
+                "book_id": borrow_data.get('book_id', ''),
+                "member_id": borrow_data.get('member_id', ''),
+                "book_title": borrow_data.get('book_title', 'Unknown'),
+                "member_name": "",  # We need to fetch this from members table
+                "borrow_date": borrow_data.get('borrow_date', ''),
+                "due_date": borrow_data.get('due_date', ''),
+                "return_date": borrow_data.get('return_date', None),
+                "status": borrow_data.get('status', 'Borrowed'),
+                "fine_amount": float(borrow_data.get('fine_amount', 0.0))
+            }
+            
+            # Fetch member name if needed
+            if complete_borrow_data['member_id']:
+                member_query = "SELECT full_name FROM members WHERE member_id = %s"
+                member_data = self.db.fetch_one(member_query, (complete_borrow_data['member_id'],))
+                if member_data:
+                    complete_borrow_data['member_name'] = member_data.get('full_name', '')
+            
+            # Open the UpdateBorrowDialog
+            dialog = UpdateBorrowDialog(
+                parent=self,
+                db=self.db,
+                borrow_data=complete_borrow_data,
+                callback=self.load_borrows_from_database
+            )
+            
+            # Only exec if the dialog is valid
+            if hasattr(dialog, '_is_valid') and dialog._is_valid:
                 dialog.exec()
-        else:
-            QMessageBox.warning(self, "No Selection", "Please select a transaction to update")
-    
+            else:
+                # The dialog will handle its own error display
+                dialog.exec()
+                
+        except Exception as e:
+            print(f"[ERROR] Update borrow error: {e}")
+            import traceback
+            traceback.print_exc()
+            QMessageBox.critical(self, "Error", f"Failed to open update transaction dialog:\n{str(e)}")
+
+
     def delete_borrow(self):
         """Delete selected borrowing transaction"""
-        selected_row = self.borrows_table.currentRow()
-        if selected_row >= 0:
-            borrow_id = self.all_borrows[selected_row]['borrow_id']
-            book_id = self.borrows_table.item(selected_row, 1).text()
-            member_id = self.borrows_table.item(selected_row, 2).text()
+        try:
+            if not self.selected_borrow_id:
+                QMessageBox.warning(self, "No Selection", "Please select a transaction to delete")
+                return
             
-            # Show confirmation dialog
+            # Find the borrow in filtered_borrows
+            borrow_data = None
+            for borrow in self.filtered_borrows:
+                if borrow['borrow_id'] == self.selected_borrow_id:
+                    borrow_data = borrow
+                    break
+            
+            if not borrow_data:
+                QMessageBox.warning(self, "Error", "Transaction not found")
+                self.load_borrows_from_database()
+                return
+            
+            book_id = borrow_data['book_id']
+            member_id = borrow_data['member_id']
+            
             dialog = ConfirmDeleteBorrowDialog(self, book_id, member_id)
             if dialog.exec() == QDialog.DialogCode.Accepted:
-                # Delete from database
                 query = "DELETE FROM borrowed_books WHERE borrow_id = %s"
-                if self.db.execute_query(query, (borrow_id,)):
-                    QMessageBox.information(self, "Success", 
-                                          f"Transaction deleted successfully!")
+                if self.db.execute_query(query, (self.selected_borrow_id,)):
+                    QMessageBox.information(self, "Success", "Transaction deleted successfully!")
+                    self.selected_borrow_id = None
                     self.load_borrows_from_database()
                 else:
                     QMessageBox.critical(self, "Error", "Failed to delete transaction from database")
-        else:
-            QMessageBox.warning(self, "No Selection", "Please select a transaction to delete")
+        except Exception as e:
+            print(f"[ERROR] Delete borrow error: {e}")
+            import traceback
+            traceback.print_exc()
+            QMessageBox.critical(self, "Error", f"Failed to delete transaction:\n{str(e)}")
     
     def go_back_to_dashboard(self):
         """Go back to dashboard"""
-        self.close()
+        try:
+            self.close()
+        except Exception as e:
+            print(f"[ERROR] Go back error: {e}")
     
     def show_fullscreen(self):
         """Show window maximized"""
-        self.setWindowState(Qt.WindowState.WindowMaximized)
-        self.showMaximized()
+        try:
+            self.setWindowState(Qt.WindowState.WindowMaximized)
+            self.showMaximized()
+        except Exception as e:
+            print(f"[ERROR] Show fullscreen error: {e}")
     
     def closeEvent(self, event):
         """Handle window close"""
-        event.accept()
+        try:
+            event.accept()
+        except Exception as e:
+            print(f"[ERROR] Close event error: {e}")
+            event.accept()

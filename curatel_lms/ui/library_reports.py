@@ -48,7 +48,7 @@ class ReportsAnalytics(QMainWindow):
         header_layout = QHBoxLayout()
         header_text = QVBoxLayout()
 
-        title = QLabel("Reports and Analytics")
+        title = QLabel("Library Reports")
         title.setFont(QFont("Montserrat", 20, QFont.Weight.Bold))
         title.setStyleSheet("color: #000000;")
         header_text.addWidget(title)
@@ -358,7 +358,7 @@ class ReportsAnalytics(QMainWindow):
                 border: 1px solid transparent;
             }
             QHeaderView::section:hover {
-                background-color: #D9CFC2;
+                background-color: #7A6D55;
             }
             QTableWidget::item:selected {
                 background-color: #C9B8A8;

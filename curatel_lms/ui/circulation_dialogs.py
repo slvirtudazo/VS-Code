@@ -17,7 +17,7 @@ class AddBorrowDialog(QDialog):
         # Same window setup as other add dialogs
         self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, False)
         self.setWindowFlag(Qt.WindowType.MSWindowsFixedSizeDialogHint)
-        self.setFixedSize(800, 720)
+        self.setFixedSize(750, 700)  # Reduced height slightly
         self.move(QApplication.primaryScreen().geometry().center() - self.rect().center())
 
         self.setWindowTitle("Curatel - Circulation Management")
@@ -44,6 +44,8 @@ class AddBorrowDialog(QDialog):
             font-weight: bold;
             letter-spacing: 3px;
             color: white;
+            border: none;
+            background: transparent;
         """)
 
         header_layout.addWidget(label)
@@ -64,9 +66,9 @@ class AddBorrowDialog(QDialog):
         layout.addWidget(header)
         layout.addSpacing(30)
 
-        # Main frame container - same size and style
+        # Main frame container - reduced height for 4 fields
         form_container = QWidget()
-        form_container.setFixedSize(600, 420)
+        form_container.setFixedSize(600, 440)  # Reduced from 520 → 440
         form_container.setStyleSheet("""
             background: transparent;
             border: 3px solid white;
@@ -74,16 +76,19 @@ class AddBorrowDialog(QDialog):
         """)
 
         form_layout = QVBoxLayout(form_container)
-        form_layout.setContentsMargins(30, 20, 30, 50)
-        form_layout.setSpacing(0)
+        form_layout.setContentsMargins(30, 20, 30, 30)
+        form_layout.setSpacing(10)  # 10px between field pairs
 
-        # Styles matching other dialogs
+        # Styles matching other dialogs - explicitly ensure no borders
         label_style = """
             font-family: Montserrat;
             font-size: 15px;
             color: white;
             border: none;
             background: transparent;
+            outline: none;
+            margin: 0px;
+            padding: 0px;
         """
 
         input_style = """
@@ -101,37 +106,26 @@ class AddBorrowDialog(QDialog):
             }
         """
 
-        date_style = """
-            QDateEdit {
-                font-family: Montserrat;
-                font-size: 13px;
-                border: 1px solid #8B7E66;
-                border-radius: 10px;
-                padding: 8px;
-                background-color: white;
-                color: black;
-            }
-            QDateEdit:focus {
-                border: 2px solid #6B5E46;
-            }
-            QDateEdit::drop-down {
-                border: none;
-                padding-right: 10px;
-            }
-        """
-
         FIELD_W = 540
         FIELD_H = 50
 
-        # Helper function to add fields
+        # Helper function to add fields with 5px spacing between label and input
         def add_field(label_text, widget):
+            field_container = QWidget()
+            field_container.setStyleSheet("border: none; background: transparent;")
+            field_layout = QVBoxLayout(field_container)
+            field_layout.setContentsMargins(0, 0, 0, 0)
+            field_layout.setSpacing(5)
+            
             label = QLabel(label_text)
             label.setStyleSheet(label_style)
             label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-            form_layout.addWidget(label)
-            form_layout.addSpacing(-20)
-            form_layout.addWidget(widget)
+            label.setContentsMargins(0, 0, 0, 0)
+            
+            field_layout.addWidget(label)
+            field_layout.addWidget(widget)
+            
+            form_layout.addWidget(field_container)
 
         # BOOK ID
         self.book_id_input = QLineEdit()
@@ -148,34 +142,18 @@ class AddBorrowDialog(QDialog):
         add_field("Member ID", self.member_id_input)
 
         # BORROW DATE
-        self.borrow_date_input = QDateEdit()
-        self.borrow_date_input.setCalendarPopup(True)
-
-        self.borrow_date_input.setSpecialValueText(" ")          
-        self.borrow_date_input.setDate(QDate())                  
-        self.borrow_date_input.setMinimumDate(QDate(1752, 9, 14))  
-        self.borrow_date_input.setMaximumDate(QDate(7999, 12, 31))
-
+        self.borrow_date_input = QLineEdit()
+        self.borrow_date_input.setPlaceholderText("YYYY-MM-DD")
         self.borrow_date_input.setFixedSize(FIELD_W, FIELD_H)
-        self.borrow_date_input.setStyleSheet(date_style)
-        self.borrow_date_input.setDisplayFormat("yyyy-MM-dd")
+        self.borrow_date_input.setStyleSheet(input_style)
         add_field("Borrow Date", self.borrow_date_input)
 
-        # DUE DATE - Starts completely blank   🔹 CHANGED
-        self.due_date_input = QDateEdit()
-        self.due_date_input.setCalendarPopup(True)
-
-        self.due_date_input.setSpecialValueText(" ")      # stays
-        self.due_date_input.setDate(QDate())              # 🔹 CHANGED (clear date)
-
-        # REMOVE minimum/maximum limits completely  🔹 REMOVED
-        # self.due_date_input.setMinimumDate(QDate(2000, 1, 1))
-
+        # DUE DATE
+        self.due_date_input = QLineEdit()
+        self.due_date_input.setPlaceholderText("YYYY-MM-DD")
         self.due_date_input.setFixedSize(FIELD_W, FIELD_H)
-        self.due_date_input.setStyleSheet(date_style)
-        self.due_date_input.setDisplayFormat("yyyy-MM-dd")
+        self.due_date_input.setStyleSheet(input_style)
         add_field("Due Date", self.due_date_input)
-
 
         # Center the form container
         container_layout = QHBoxLayout()
@@ -240,29 +218,32 @@ class AddBorrowDialog(QDialog):
         member_id = self.member_id_input.text().strip()
 
         # Get the borrow date
-        borrow_date_qdate = self.borrow_date_input.date()
-        
-        # Get the due date - check if it's still at the special blank value
-        due_date_qdate = self.due_date_input.date()
-        
-        # Check if due date is still blank (at minimum date)
-        if due_date_qdate == QDate(2000, 1, 1):
-            QMessageBox.warning(self, "Error", "Please set a due date")
+        borrow_date_text = self.borrow_date_input.text().strip()
+
+        # Get the due date
+        due_date_text = self.due_date_input.text().strip()
+
+        if not borrow_date_text or not due_date_text:
+            QMessageBox.warning(self, "Error", "Borrow Date and Due Date are required")
             return
 
-        # Create full datetime strings (YYYY-MM-DD HH:MM:SS)
-        now = datetime.now()
-        now_time_str = now.strftime("%H:%M:%S")
-        
-        borrow_date = f"{borrow_date_qdate.toString('yyyy-MM-dd')} {now_time_str}"
-        due_date = f"{due_date_qdate.toString('yyyy-MM-dd')} {now_time_str}"
+        # Validate due date
+        due_date_qdate = QDate.fromString(due_date_text, "yyyy-MM-dd")
+        if not due_date_qdate.isValid():
+            QMessageBox.warning(self, "Error", "Invalid Due Date format. Use YYYY-MM-DD.")
+            return
+
+        # Current time to append for borrow and due dates
+        now_time_str = datetime.now().strftime("%H:%M:%S")
+        borrow_date = f"{borrow_date_text} {now_time_str}"
+        due_date = f"{due_date_text} {now_time_str}"
 
         # Validation
         if not all([book_id, member_id]):
             QMessageBox.warning(self, "Error", "Book ID and Member ID are required")
             return
 
-        # Check if book exists and is available
+        # Check if book exists & available
         book_query = "SELECT book_id, status, title FROM books WHERE book_id = %s"
         book = self.db.fetch_one(book_query, (book_id,))
         if not book:
@@ -272,7 +253,7 @@ class AddBorrowDialog(QDialog):
             QMessageBox.warning(self, "Error", f"Book '{book['title']}' is not available for borrowing")
             return
 
-        # Check if member exists and is active
+        # Check if member exists & active
         member_query = "SELECT member_id, status, full_name FROM members WHERE member_id = %s"
         member = self.db.fetch_one(member_query, (member_id,))
         if not member:
@@ -282,16 +263,21 @@ class AddBorrowDialog(QDialog):
             QMessageBox.warning(self, "Error", f"Member '{member['full_name']}' is not active")
             return
 
-        # Insert into database — do NOT set updated_at manually; DB will handle it.
+        # Insert into database — return_date set to NULL
         query = """
         INSERT INTO borrowed_books (book_id, member_id, borrow_date, due_date, return_date, status, fine_amount)
-        VALUES (%s, %s, %s, %s, NULL, 'Borrowed', 0.00)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
         """
 
-        if self.db.execute_query(query, (book_id, member_id, borrow_date, due_date)):
-            # Update book status to Borrowed — let DB update timestamps automatically
-            update_book_query = "UPDATE books SET status = 'Borrowed' WHERE book_id = %s"
-            self.db.execute_query(update_book_query, (book_id,))
+        # Status defaults to 'Borrowed'
+        status = 'Borrowed'
+        fine_amount = 0.00
+        return_date = None
+
+        if self.db.execute_query(query, (book_id, member_id, borrow_date, due_date, return_date, status, fine_amount)):
+            # Update book status to 'Borrowed'
+            update_book_query = "UPDATE books SET status = %s WHERE book_id = %s"
+            self.db.execute_query(update_book_query, ('Borrowed', book_id))
 
             QMessageBox.information(
                 self,
@@ -307,13 +293,12 @@ class AddBorrowDialog(QDialog):
         else:
             QMessageBox.critical(self, "Error", "Failed to add transaction to database")
 
-
 class ViewBorrowDialog(QDialog):
     """Dialog for viewing borrowing transaction details - matches ViewMemberDialog design"""
     
     def __init__(self, parent=None, borrow_data=None):
         super().__init__(parent)
-        self.borrow_data = borrow_data
+        self.borrow_data = borrow_data or {}
         
         # Same window setup as ViewMemberDialog
         self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, False)
@@ -477,16 +462,41 @@ class ViewBorrowDialog(QDialog):
 
         layout.addLayout(button_layout)
 
-
 class UpdateBorrowDialog(QDialog):
     """Dialog for updating borrowing transaction - matches UpdateMemberDialog design"""
 
     def __init__(self, parent=None, db=None, borrow_data=None, callback=None):
         super().__init__(parent)
         self.db = db
-        self.borrow_data = borrow_data
+        self.borrow_data = borrow_data or {}
         self.callback = callback
-
+        self._is_valid = False
+        
+        if not self.borrow_data or not isinstance(self.borrow_data, dict):
+            self.borrow_data = {}
+        elif not self.borrow_data.get("borrow_id"):
+            self.borrow_data = {}
+        
+        if self.borrow_data and self.borrow_data.get("borrow_id"):
+            self._is_valid = True
+            defaults = {
+                "borrow_id": None,
+                "book_id": "",
+                "member_id": "",
+                "book_title": "",
+                "member_name": "",
+                "borrow_date": "",
+                "due_date": "",
+                "return_date": None,
+                "status": "Borrowed",
+                "fine_amount": 0.00,
+            }
+            for key, val in defaults.items():
+                if key not in self.borrow_data or self.borrow_data[key] is None:
+                    self.borrow_data[key] = val
+        else:
+            self._is_valid = False
+        
         self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, False)
         self.setWindowFlag(Qt.WindowType.MSWindowsFixedSizeDialogHint)
         self.setFixedSize(750, 650)
@@ -523,20 +533,62 @@ class UpdateBorrowDialog(QDialog):
 
     def setup_ui(self):
         """Setup update transaction UI matching UpdateMemberDialog"""
-        # Set dialog background
-        self.setStyleSheet("background-color: #8B7E66;")
+        if not self._is_valid:
+            self.setStyleSheet("background-color: #8B7E66;")
+            layout = QVBoxLayout(self)
+            layout.setContentsMargins(0, 0, 0, 30)
+            layout.setSpacing(0)
+
+            header = self.create_header("UPDATE TRANSACTION")
+            layout.addWidget(header)
+            layout.addSpacing(40)
+
+            error_label = QLabel("No valid transaction selected.\nPlease select a row from the table.")
+            error_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            error_label.setStyleSheet("""
+                font-family: Montserrat;
+                font-size: 18px;
+                color: white;
+                border: none;
+                background: transparent;
+            """)
+            layout.addWidget(error_label)
+            layout.addSpacing(40)
+
+            button_layout = QHBoxLayout()
+            button_layout.addStretch()
+            close_btn = QPushButton("Close")
+            close_btn.setFixedSize(150, 60)
+            close_btn.setStyleSheet("""
+                QPushButton {
+                    background-color: #AF3E3E;
+                    color: white;
+                    border: none;
+                    border-radius: 15px;
+                    font-family: Montserrat;
+                    font-size: 18px;
+                    font-weight: bold;
+                }
+                QPushButton:hover {
+                    background-color: #CD5656;
+                }
+            """)
+            close_btn.clicked.connect(self.reject)
+            button_layout.addWidget(close_btn)
+            button_layout.addStretch()
+            layout.addLayout(button_layout)
+            return
         
+        self.setStyleSheet("background-color: #8B7E66;")
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 30)
         layout.setSpacing(0)
 
-        # Header
         layout.addSpacing(-35)
         header = self.create_header("UPDATE TRANSACTION")
         layout.addWidget(header)
         layout.addSpacing(30)
 
-        # Frame container
         form_container = QWidget()
         form_container.setFixedSize(600, 350)
         form_container.setStyleSheet("""
@@ -548,32 +600,12 @@ class UpdateBorrowDialog(QDialog):
         form_layout = QVBoxLayout(form_container)
         form_layout.setContentsMargins(30, 10, 30, 30)
 
-        # Styles
         label_style = """
             font-family: Montserrat;
             font-size: 15px;
             color: white;
             border: none;
             background: transparent;
-        """
-
-        date_style = """
-            QDateEdit {
-                font-family: Montserrat;
-                font-size: 13px;
-                border: 1px solid #8B7E66;
-                border-radius: 10px;
-                padding: 8px;
-                background-color: white;
-                color: black;
-            }
-            QDateEdit:focus {
-                border: 2px solid #6B5E46;
-            }
-            QDateEdit::drop-down {
-                border: none;
-                padding-right: 10px;
-            }
         """
 
         input_style = """
@@ -622,23 +654,35 @@ class UpdateBorrowDialog(QDialog):
         FIELD_W = 540
         FIELD_H = 50
 
-        # Helper function
         def add_field(label_text, widget):
             label = QLabel(label_text)
             label.setStyleSheet(label_style)
             label.setAlignment(Qt.AlignmentFlag.AlignCenter)
             form_layout.addWidget(label)
             form_layout.addWidget(widget)
+            form_layout.addSpacing(5)
 
-        # RETURN DATE
+        # RETURN DATE — now using QLineEdit for blank + placeholder
         self.return_date_input = QLineEdit()
-        self.return_date_input.setPlaceholderText("YY-MM-DD")
-        if self.borrow_data.get('return_date'):
-            return_date_str = str(self.borrow_data.get('return_date'))
-            self.return_date_input.setText(return_date_str.split()[0])
+        self.return_date_input.setPlaceholderText("YYYY-MM-DD")
         self.return_date_input.setFixedSize(FIELD_W, FIELD_H)
         self.return_date_input.setStyleSheet(input_style)
         add_field("Return Date", self.return_date_input)
+
+        # Set initial value only if return_date exists in DB
+        return_raw = self.borrow_data.get("return_date")
+        if return_raw and str(return_raw).strip().lower() not in ("none", "", "null"):
+            try:
+                date_part = str(return_raw).split()[0]
+                qdate = QDate.fromString(date_part, "yyyy-MM-dd")
+                if qdate.isValid():
+                    self.return_date_input.setText(date_part)
+                else:
+                    self.return_date_input.clear()
+            except Exception:
+                self.return_date_input.clear()
+        else:
+            self.return_date_input.clear()  # Blank by default
 
         # STATUS
         self.status_combo = QComboBox()
@@ -649,29 +693,23 @@ class UpdateBorrowDialog(QDialog):
         self.status_combo.setStyleSheet(combo_style)
         add_field("Status", self.status_combo)
 
-        # FINE AMOUNT - Starts blank with "0.00" placeholder
+        # FINE AMOUNT — always manual, no auto-fill
         self.fine_input = QLineEdit()
-        # Only show existing fine if it's greater than 0
-        current_fine = float(self.borrow_data.get('fine_amount', 0))
-        if current_fine > 0:
-            self.fine_input.setText(f"{current_fine:.2f}")
-        else:
-            # Leave blank with placeholder
-            self.fine_input.setPlaceholderText("0.00")
+        self.fine_input.setPlaceholderText("0.00")
         self.fine_input.setFixedSize(FIELD_W, FIELD_H)
         self.fine_input.setStyleSheet(input_style)
         add_field("Fine Amount (₱)", self.fine_input)
 
-        # Center frame
+        # NOTE: No auto-fine logic connected to status change anymore
+
         container_layout = QHBoxLayout()
         container_layout.addStretch()
         container_layout.addWidget(form_container)
         container_layout.addStretch()
         layout.addLayout(container_layout)
 
-        layout.addSpacing(50)
+        layout.addSpacing(30)
 
-        # Buttons
         button_layout = QHBoxLayout()
         button_layout.setSpacing(30)
         button_layout.addStretch()
@@ -687,7 +725,7 @@ class UpdateBorrowDialog(QDialog):
                 border-radius: 15px;
                 font-family: Montserrat;
                 font-size: 18px;
-                font-weight: bold;                 
+                font-weight: bold;
             }
             QPushButton:hover {
                 background-color: #A3B087;
@@ -708,7 +746,7 @@ class UpdateBorrowDialog(QDialog):
                 padding: 8px;
                 font-family: Montserrat;
                 font-size: 18px;
-                font-weight: bold;                 
+                font-weight: bold;
             }
             QPushButton:hover {
                 background-color: #CD5656;
@@ -719,62 +757,70 @@ class UpdateBorrowDialog(QDialog):
 
         button_layout.addStretch()
         layout.addLayout(button_layout)
-
+        
     def update_borrow(self):
-        """Update borrowing transaction in database (sets return_date, status, fine; DB handles timestamps)."""
-        
-        # Get the return date from QLineEdit
+        """Update borrowing transaction in database safely"""
+        # Handle Return Date from QLineEdit
         return_date_text = self.return_date_input.text().strip()
-        
+        return_date = None
         if return_date_text:
-            # Try to parse the date
-            try:
-                return_date_dt = datetime.strptime(return_date_text, "%Y-%m-%d")
-                now = datetime.now()
-                return_date = f"{return_date_dt.strftime('%Y-%m-%d')} {now.strftime('%H:%M:%S')}"
-            except ValueError:
-                QMessageBox.warning(self, "Error", "Return date must be in YYYY-MM-DD format")
+            qdate = QDate.fromString(return_date_text, "yyyy-MM-dd")
+            if not qdate.isValid():
+                QMessageBox.warning(self, "Error", "Invalid Return Date format. Use YYYY-MM-DD.")
                 return
-        else:
-            return_date = None  # Keep NULL if blank
+            return_date = f"{return_date_text} {datetime.now().strftime('%H:%M:%S')}"
+        # else: remains None → NULL in DB
 
         status = self.status_combo.currentText()
-        fine_text = self.fine_input.text().strip()
-
-        # Validate fine amount
-        if not fine_text:
-            fine = 0.00
-        else:
-            try:
-                fine = float(fine_text)
-                if fine < 0:
-                    QMessageBox.warning(self, "Error", "Fine amount cannot be negative")
-                    return
-            except ValueError:
-                QMessageBox.warning(self, "Error", "Please enter a valid fine amount")
+        
+        # If status is 'Returned' but no date → prompt
+        if status == "Returned" and not return_date_text:
+            reply = QMessageBox.question(self, 'Confirm Return Date',
+                "Status is 'Returned' but no Return Date is entered. Use today's date?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+            if reply == QMessageBox.StandardButton.Yes:
+                today = QDate.currentDate().toString("yyyy-MM-dd")
+                return_date = f"{today} {datetime.now().strftime('%H:%M:%S')}"
+            else:
                 return
 
-        book_id = self.borrow_data.get('book_id')
-        current_status = self.borrow_data.get('status')
-
-        # Update book status if needed
+        # Validate fine
+        fine_text = self.fine_input.text().strip()
         try:
-            if status == 'Returned' and current_status != 'Returned':
-                self.db.execute_query("UPDATE books SET status = 'Available' WHERE book_id = %s", (book_id,))
-            elif status != 'Returned' and current_status == 'Returned':
-                self.db.execute_query("UPDATE books SET status = 'Borrowed' WHERE book_id = %s", (book_id,))
+            fine = float(fine_text) if fine_text else 0.0
+            if fine < 0:
+                QMessageBox.warning(self, "Error", "Fine cannot be negative")
+                return
+        except ValueError:
+            QMessageBox.warning(self, "Error", "Invalid fine amount")
+            return
+
+        borrow_id = self.borrow_data.get("borrow_id")
+        if borrow_id is None:
+            QMessageBox.critical(self, "Error", "Transaction ID missing.")
+            return
+
+        # Update book status
+        try:
+            book_id = self.borrow_data.get('book_id')
+            current_status = self.borrow_data.get('status')
+            
+            if status == "Returned" and current_status != "Returned":
+                self.db.execute_query("UPDATE books SET status='Available' WHERE book_id=%s", (book_id,))
+            elif status != "Returned" and current_status == "Returned":
+                self.db.execute_query("UPDATE books SET status='Borrowed' WHERE book_id=%s", (book_id,))
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to update book status:\n{e}")
+            QMessageBox.critical(self, "Error", f"Book status update failed:\n{e}")
             return
 
         # Update borrowed_books
         try:
             query = """
                 UPDATE borrowed_books
-                SET return_date = %s, status = %s, fine_amount = %s
-                WHERE borrow_id = %s
+                SET return_date=%s, status=%s, fine_amount=%s
+                WHERE borrow_id=%s
             """
-            success = self.db.execute_query(query, (return_date, status, fine, self.borrow_data['borrow_id']))
+            success = self.db.execute_query(query, (return_date, status, fine, borrow_id))
             if success:
                 QMessageBox.information(self, "Success", "Transaction updated successfully!")
                 if self.callback:
@@ -784,6 +830,18 @@ class UpdateBorrowDialog(QDialog):
                 QMessageBox.critical(self, "Error", "Failed to update transaction")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Database error:\n{e}")
+
+    def apply_overdue_fine(self):
+        """Logic to apply or remove the default fine based on status selection."""
+        if self.status_combo.currentText() == "Overdue":
+            self.fine_input.setText("100.00")  # ₱100.00 overdue fine as required
+        else:
+            # If status changes from overdue, revert to the initial fine amount (or 0.00)
+            initial_fine = float(self.borrow_data.get('fine_amount', 0))
+            if initial_fine > 0:
+                 self.fine_input.setText(f"{initial_fine:.2f}")
+            else:
+                 self.fine_input.setText("0.00")
 
 class ConfirmDeleteBorrowDialog(QDialog):
     """Confirmation dialog for deleting a borrowing transaction - matches ConfirmDeleteMemberDialog design"""

@@ -285,7 +285,7 @@ class AddBookDialog(BaseDialog):
 
         # CATEGORY
         self.category_combo = QComboBox()
-        self.category_combo.addItems(["Adventure", "Art", "Biography", "Business", 
+        self.category_combo.addItems(["All", "Adventure", "Art", "Biography", "Business", 
                                     "Cooking", "Fantasy", "Fiction", "History", "Horror", 
                                     "Mystery", "Non-Fiction", "Poetry", "Romance", "Science", "Technology"])
         self.category_combo.setFixedSize(FIELD_W, FIELD_H)
@@ -673,7 +673,7 @@ class UpdateBookDialog(BaseDialog):
 
         # CATEGORY
         self.category_combo = QComboBox()
-        self.category_combo.addItems(["Adventure", "Art", "Biography", "Business", 
+        self.category_combo.addItems(["All", "Adventure", "Art", "Biography", "Business", 
                                     "Cooking", "Fantasy", "Fiction", "History", "Horror", 
                                     "Mystery", "Non-Fiction", "Poetry", "Romance", "Science", "Technology"])
         self.category_combo.setCurrentText(self.book_data.get('category', 'Fiction'))
