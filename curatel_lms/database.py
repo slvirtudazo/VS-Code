@@ -1,4 +1,4 @@
-# database.py
+# curatel_lms/database.py
 
 import mysql.connector
 from mysql.connector import Error

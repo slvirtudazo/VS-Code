@@ -24,7 +24,7 @@ class BaseDialog(QDialog):
             }
             QLabel {
                 color: white;
-                font-family: 'Montserrat';
+                font-family: Montserrat;
                 background: transparent;
             }
             QLineEdit, QComboBox {
@@ -33,7 +33,7 @@ class BaseDialog(QDialog):
                 border-radius: 15px;
                 padding: 15px 20px;
                 font-size: 14px;
-                font-family: 'Montserrat';
+                font-family: Montserrat;
                 color: #000000;
             }
             QLineEdit:focus, QComboBox:focus {

@@ -159,7 +159,7 @@ class LoginScreen(QMainWindow):
         self.setCentralWidget(central_widget)
 
         # Background Setup
-        bg_path = os.path.join(self.base_dir, "assets", "library_image.png")
+        bg_path = os.path.join(self.base_dir, "assets", "curatel_bg.png")
 
         if os.path.exists(bg_path):
             bg_path = bg_path.replace("\\", "/")
@@ -340,7 +340,7 @@ class LoginScreen(QMainWindow):
 
         # Forgot Password button setup
         forgot_btn = QPushButton("Forgot Password?")
-        forgot_btn.setFont(QFont("Montserrat", 11, QFont.Weight.Normal))
+        forgot_btn.setFont(QFont("Montserrat", 11, QFont.Weight.Bold))
         forgot_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         forgot_btn.setStyleSheet(
             """

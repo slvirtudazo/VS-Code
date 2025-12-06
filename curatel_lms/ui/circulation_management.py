@@ -1,4 +1,4 @@
-# ui/circulation_management.py
+# ui/circulation_management.py - COMPLETE FIXED VERSION
 
 from PyQt6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
                               QPushButton, QLineEdit, QTableWidget, QTableWidgetItem, 
@@ -16,7 +16,7 @@ class CirculationManagement(QMainWindow):
         super().__init__()
         self.db = db
         self.all_borrows = []
-        self.filtered_borrows = []  # Store filtered data separately
+        self.filtered_borrows = []
         self.selected_borrow_id = None
         self.sort_column = None
         self.sort_order = Qt.SortOrder.AscendingOrder
@@ -293,7 +293,6 @@ class CirculationManagement(QMainWindow):
         try:
             selected_row = self.borrows_table.currentRow()
             if selected_row >= 0 and selected_row < len(self.filtered_borrows):
-                # Get borrow_id from the filtered data, not the table
                 self.selected_borrow_id = self.filtered_borrows[selected_row]['borrow_id']
                 print(f"[INFO] Selected borrow_id: {self.selected_borrow_id}")
             else:
@@ -363,7 +362,7 @@ class CirculationManagement(QMainWindow):
             QMessageBox.critical(self, "Error", f"Failed to load borrowing records:\n{str(e)}")
     
     def display_borrows(self, borrows):
-        """Display borrowing records in the table"""
+        """FIXED: Display borrowing records - show BLANK for NULL return_date"""
         try:
             self.borrows_table.setRowCount(len(borrows))
             
@@ -406,8 +405,13 @@ class CirculationManagement(QMainWindow):
                 item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
                 self.borrows_table.setItem(row, 4, item)
                 
-                # Return Date
-                return_date = str(borrow['return_date']) if borrow['return_date'] else "Not Returned"
+                # FIXED: Return Date - SHOW BLANK IF NULL/NONE
+                return_date_raw = borrow.get('return_date')
+                if return_date_raw is None or str(return_date_raw).strip().lower() in ('none', 'null', ''):
+                    return_date = ""  # Show as blank/empty
+                else:
+                    return_date = str(return_date_raw)
+                
                 item = QTableWidgetItem(return_date)
                 item.setFont(QFont("Montserrat", 10))
                 item.setForeground(QColor("#000000"))
@@ -481,7 +485,6 @@ class CirculationManagement(QMainWindow):
                         reverse=(self.sort_order == Qt.SortOrder.DescendingOrder)
                     )
             
-            # Store filtered data for selection tracking
             self.filtered_borrows = filtered_borrows
             
             self.display_borrows(filtered_borrows)
@@ -531,47 +534,41 @@ class CirculationManagement(QMainWindow):
             QMessageBox.critical(self, "Error", f"Failed to view transaction:\n{str(e)}")
 
     def update_borrow(self):
-        """Open update borrowing transaction dialog"""
+        """Open update borrowing transaction dialog - FIXED: Fetch fresh data from DB"""
         try:
             if not self.selected_borrow_id:
                 QMessageBox.warning(self, "No Selection", "Please select a transaction to update")
                 return
             
-            # Find the complete borrow data from our filtered_borrows list
-            borrow_data = None
-            for borrow in self.filtered_borrows:
-                if borrow['borrow_id'] == self.selected_borrow_id:
-                    borrow_data = borrow
-                    break
+            # ✅ CRITICAL FIX: Fetch the FULL row directly from database to preserve original dates
+            query = """
+            SELECT bb.*, b.title as book_title, m.full_name as member_name
+            FROM borrowed_books bb
+            LEFT JOIN books b ON bb.book_id = b.book_id
+            LEFT JOIN members m ON bb.member_id = m.member_id
+            WHERE bb.borrow_id = %s
+            """
+            borrow_data = self.db.fetch_one(query, (self.selected_borrow_id,))
             
             if not borrow_data:
-                QMessageBox.warning(self, "Error", "Transaction data not found")
+                QMessageBox.warning(self, "Error", "Transaction not found in database")
                 self.load_borrows_from_database()
                 return
             
-            # Get additional data needed for the dialog
-            # The borrow_data should already contain most fields, but let's ensure we have everything
+            # Build complete data with original dates preserved
             complete_borrow_data = {
                 "borrow_id": borrow_data.get('borrow_id'),
                 "book_id": borrow_data.get('book_id', ''),
                 "member_id": borrow_data.get('member_id', ''),
                 "book_title": borrow_data.get('book_title', 'Unknown'),
-                "member_name": "",  # We need to fetch this from members table
-                "borrow_date": borrow_data.get('borrow_date', ''),
-                "due_date": borrow_data.get('due_date', ''),
+                "member_name": borrow_data.get('member_name', ''),
+                "borrow_date": borrow_data.get('borrow_date', ''),      # ← Original from DB
+                "due_date": borrow_data.get('due_date', ''),            # ← Original from DB
                 "return_date": borrow_data.get('return_date', None),
                 "status": borrow_data.get('status', 'Borrowed'),
                 "fine_amount": float(borrow_data.get('fine_amount', 0.0))
             }
             
-            # Fetch member name if needed
-            if complete_borrow_data['member_id']:
-                member_query = "SELECT full_name FROM members WHERE member_id = %s"
-                member_data = self.db.fetch_one(member_query, (complete_borrow_data['member_id'],))
-                if member_data:
-                    complete_borrow_data['member_name'] = member_data.get('full_name', '')
-            
-            # Open the UpdateBorrowDialog
             dialog = UpdateBorrowDialog(
                 parent=self,
                 db=self.db,
@@ -579,12 +576,7 @@ class CirculationManagement(QMainWindow):
                 callback=self.load_borrows_from_database
             )
             
-            # Only exec if the dialog is valid
-            if hasattr(dialog, '_is_valid') and dialog._is_valid:
-                dialog.exec()
-            else:
-                # The dialog will handle its own error display
-                dialog.exec()
+            dialog.exec()
                 
         except Exception as e:
             print(f"[ERROR] Update borrow error: {e}")
@@ -600,7 +592,6 @@ class CirculationManagement(QMainWindow):
                 QMessageBox.warning(self, "No Selection", "Please select a transaction to delete")
                 return
             
-            # Find the borrow in filtered_borrows
             borrow_data = None
             for borrow in self.filtered_borrows:
                 if borrow['borrow_id'] == self.selected_borrow_id:

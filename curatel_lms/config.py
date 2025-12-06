@@ -1,4 +1,4 @@
-# config.py
+# curatel_lms/config.py
 
 class AppConfig:
     """Application configuration constants"""
@@ -72,7 +72,7 @@ class AppConfig:
                     color: white;
                     border: none;
                     border-radius: 10px;
-                    font-family: 'Montserrat';
+                    font-family: Montserrat;
                     font-weight: bold;
                 }
                 QPushButton:hover {
@@ -89,7 +89,7 @@ class AppConfig:
                     color: white;
                     border: none;
                     border-radius: 8px;
-                    font-family: 'Montserrat';
+                    font-family: Montserrat;
                     font-weight: bold;
                 }
                 QPushButton:hover {

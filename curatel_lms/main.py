@@ -1,4 +1,4 @@
-# main.py
+# curatel_lms/main.py
 
 import sys
 import os
@@ -6,7 +6,6 @@ import os
 # Add parent directory to path for proper imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Check for required packages
 try:
     import mysql.connector
     print("[OK] MySQL connector available")
@@ -62,6 +61,13 @@ def load_fonts():
     else:
         print("⚠ Some fonts failed to load, using system fonts as fallback")
     
+    families = QFontDatabase.families()
+    custom_fonts = [f for f in families if 'Montserrat' in f or 'Playfair' in f]
+    if custom_fonts:
+        print(f"[OK] Custom fonts registered: {custom_fonts}")
+    else:
+        print("[WARNING] Custom fonts not found in font database")
+    
     return all_loaded
 
 def connect_database():
@@ -109,7 +115,7 @@ def main():
         window = LoginScreen(db)
         print("[INFO] Showing LoginScreen...")
         window.show()
-        print(" [INFO] Application started successfully")
+        print("[INFO] Application started successfully")
         
         # Start application event loop
         sys.exit(app.exec())
