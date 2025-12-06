@@ -109,7 +109,7 @@ def main():
         window = LoginScreen(db)
         print("[INFO] Showing LoginScreen...")
         window.show()
-        print("[INFO] Application started successfully")
+        print(" [INFO] Application started successfully")
         
         # Start application event loop
         sys.exit(app.exec())

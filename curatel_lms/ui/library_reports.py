@@ -328,7 +328,7 @@ class ReportsAnalytics(QMainWindow):
         elif title_text == "Most Popular Books":
             table.setColumnWidth(0, 50)             # Rank
             table.setColumnWidth(1, 400)            # Book Title
-            table.setColumnWidth(2, 50)            # Times Borrowed
+            table.setColumnWidth(2, 50)             # Times Borrowed
 
         # Table settings
         table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)

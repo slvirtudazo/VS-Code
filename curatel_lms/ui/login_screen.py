@@ -196,9 +196,9 @@ class LoginScreen(QMainWindow):
 
         # Applies drop shadow effect to the form container.
         shadow = QGraphicsDropShadowEffect()
-        shadow.setBlurRadius(20)
-        shadow.setColor(QColor(0, 0, 0, 100))
-        shadow.setOffset(0, 5)
+        shadow.setBlurRadius(100)
+        shadow.setColor(QColor(0, 0, 0, 200))
+        shadow.setOffset(30, 30)
         form_container.setGraphicsEffect(shadow)
 
         form_layout = QVBoxLayout(form_container)
@@ -406,7 +406,7 @@ class LoginScreen(QMainWindow):
             QMessageBox.warning(self, "Error", "Please enter both username and password.")
             return
 
-        if username == "slvirtudazo" and password == "554893":
+        if username == "slav" and password == "554893":
             QMessageBox.information(self, "Success", f"Welcome, {username}!")
             self.show_dashboard()
         else:
