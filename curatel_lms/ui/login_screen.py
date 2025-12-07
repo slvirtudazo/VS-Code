@@ -221,7 +221,7 @@ class LoginScreen(QMainWindow):
         self.username_input.setFixedHeight(50)
         self.username_input.setStyleSheet("""
             QLineEdit {
-                border: 1px solid white;
+                border: 1px solid black;
                 border-radius: 20px;
                 padding: 12px 20px;
                 font-size: 12px;
@@ -254,7 +254,7 @@ class LoginScreen(QMainWindow):
         self.password_input.setFixedHeight(50)
         self.password_input.setStyleSheet("""
             QLineEdit {
-                border: 1px solid white;
+                border: 1px solid black;
                 border-radius: 20px;
                 padding: 12px 20px;
                 padding-right: 50px;
