@@ -1,24 +1,29 @@
 # curatel_lms/database.py
 
+"""
+Database connection and query execution module.
+Handles all MySQL database operations with error handling.
+"""
+
 import mysql.connector
 from mysql.connector import Error
 
 class Database:
-    """Database connection manager"""
+    """Manages MySQL database connections and operations."""
     
     def __init__(self):
-        """Initialize database connection parameters"""
+        """Initialize database parameters."""
         self.connection = None
         self.host = 'localhost'
         self.user = 'root'
         self.password = ''
         self.database = 'db_library'
-        print("[INFO] Database object initialized")
+        print("[INFO] Database initialized")
     
     def connect(self):
         """
-        Attempt to connect to MySQL database
-        Returns: True if successful, False otherwise
+        Establish database connection.
+        Returns: True if successful, False otherwise.
         """
         try:
             self.connection = mysql.connector.connect(
@@ -29,104 +34,96 @@ class Database:
             )
             
             if self.connection.is_connected():
-                print("[OK] Database connected successfully")
+                print("[OK] Connected to database")
                 return True
-            else:
-                print("[ERROR] Failed to connect to database")
-                return False
+            
+            print("[ERROR] Connection failed")
+            return False
                 
         except Error as e:
-            print(f"[ERROR] Database connection error: {e}")
+            print(f"[ERROR] Connection error: {e}")
             self.connection = None
             return False
     
     def execute_query(self, query, params=None):
         """
-        Execute INSERT, UPDATE, DELETE queries
+        Execute INSERT, UPDATE, DELETE queries.
         Args:
             query: SQL query string
-            params: Tuple of parameters for query
-        Returns: True if successful, False otherwise
+            params: Query parameters tuple
+        Returns: True if successful, False otherwise.
         """
-        if self.connection is None or not self.connection.is_connected():
-            print("[ERROR] No database connection")
+        if not self._is_connected():
             return False
             
         try:
             cursor = self.connection.cursor()
-            if params:
-                cursor.execute(query, params)
-            else:
-                cursor.execute(query)
-            
+            cursor.execute(query, params) if params else cursor.execute(query)
             self.connection.commit()
             cursor.close()
-            print(f"[OK] Query executed successfully")
+            print("[OK] Query executed")
             return True
             
         except Error as e:
-            print(f"[ERROR] Query execution error: {e}")
+            print(f"[ERROR] Query failed: {e}")
             if self.connection:
                 self.connection.rollback()
             return False
     
     def fetch_all(self, query, params=None):
         """
-        Fetch all results from SELECT query
+        Fetch all records from SELECT query.
         Args:
             query: SQL query string
-            params: Tuple of parameters for query
-        Returns: List of dictionaries containing results
+            params: Query parameters tuple
+        Returns: List of dictionaries containing results.
         """
-        if self.connection is None or not self.connection.is_connected():
-            print("[ERROR] No database connection")
+        if not self._is_connected():
             return []
             
         try:
             cursor = self.connection.cursor(dictionary=True)
-            if params:
-                cursor.execute(query, params)
-            else:
-                cursor.execute(query)
-            
+            cursor.execute(query, params) if params else cursor.execute(query)
             results = cursor.fetchall()
             cursor.close()
             print(f"[OK] Fetched {len(results)} records")
             return results
             
         except Error as e:
-            print(f"[ERROR] Fetch error: {e}")
+            print(f"[ERROR] Fetch failed: {e}")
             return []
     
     def fetch_one(self, query, params=None):
         """
-        Execute query and fetch one result
+        Fetch single record from SELECT query.
         Args:
             query: SQL query string
-            params: Tuple of parameters for query
-        Returns: Dictionary containing result or None
+            params: Query parameters tuple
+        Returns: Dictionary containing result or None.
         """
-        if self.connection is None or not self.connection.is_connected():
-            print("[ERROR] No database connection")
+        if not self._is_connected():
             return None
             
         try:
             cursor = self.connection.cursor(dictionary=True)
-            if params:
-                cursor.execute(query, params)
-            else:
-                cursor.execute(query)
-            
+            cursor.execute(query, params) if params else cursor.execute(query)
             result = cursor.fetchone()
             cursor.close()
             return result
             
         except Error as e:
-            print(f"[ERROR] Fetch one error: {e}")
+            print(f"[ERROR] Fetch one failed: {e}")
             return None
     
     def close(self):
-        """Close database connection"""
+        """Close database connection."""
         if self.connection and self.connection.is_connected():
             self.connection.close()
-            print("[INFO] Database connection closed")
+            print("[INFO] Connection closed")
+    
+    def _is_connected(self):
+        """Check if database is connected."""
+        if not self.connection or not self.connection.is_connected():
+            print("[ERROR] No database connection")
+            return False
+        return True

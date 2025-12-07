@@ -1,48 +1,177 @@
-# ui/catalog_management.py
+# curatel_lms/ui/catalog_management.py
 
-from PyQt6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
-                              QPushButton, QLineEdit, QTableWidget, QTableWidgetItem, 
-                              QComboBox, QMessageBox, QHeaderView, QAbstractItemView, QDialog)
+"""
+Catalog management module.
+Main window for managing library book inventory.
+"""
+
 from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import (
+    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
+    QPushButton, QLineEdit, QTableWidget, QTableWidgetItem,
+    QComboBox, QMessageBox, QHeaderView, QAbstractItemView, QDialog
+)
 from PyQt6.QtGui import QFont, QColor
 
-# Import the dialogs
-from curatel_lms.ui.catalog_dialogs import (AddBookDialog, ViewBookDialog, 
-                                     UpdateBookDialog, ConfirmDeleteDialog)
+from curatel_lms.ui.catalog_dialogs import (
+    AddBookDialog, ViewBookDialog, UpdateBookDialog, ConfirmDeleteDialog
+)
+
+# UI Constants
+BUTTON_WIDTH = 120
+BUTTON_HEIGHT = 40
+SEARCH_HEIGHT = 40
+
+# Color Constants
+STATUS_AVAILABLE = "#228C3A"
+STATUS_BORROWED = "#DC3545"
+TEXT_BLACK = "#000000"
+
+# Style Constants
+SEARCH_INPUT_STYLE = """
+    QLineEdit {
+        border: 2px solid #8B7E66;
+        border-radius: 10px;
+        padding: 8px 10px;
+        font-family: Montserrat;
+        font-size: 11px;
+        color: black;
+        background-color: white;
+    }
+    QLineEdit:focus {
+        border: 2px solid #6B5E46;
+    }
+    QLineEdit::placeholder {
+        color: gray;
+    }
+"""
+
+COMBO_STYLE = """
+    QComboBox {
+        border: 2px solid #8B7E66;
+        border-radius: 10px;
+        padding: 5px 10px;
+        font-family: Montserrat;
+        font-size: 12px;
+        color: #000000;
+        background-color: white;
+    }
+    QComboBox:focus {
+        border: 2px solid #6B5E46;
+    }
+    QComboBox QAbstractItemView {
+        color: #000000;
+        background-color: white;
+        selection-background-color: #D9CFC2;
+        selection-color: black;
+    }
+"""
+
+TABLE_STYLE = """
+    QTableWidget {
+        border: 1px solid #8B7E66;
+        gridline-color: #8B7E66;
+        background-color: white;
+        selection-background-color: #D9CFC2;
+        selection-color: black;
+    }
+    QHeaderView::section {
+        background-color: #9B8B7E;
+        padding: 8px;
+        font-weight: bold;
+        color: white;
+        font-family: Montserrat;
+        font-size: 12px;
+        border: none;
+    }
+    QHeaderView::section:hover {
+        background-color: #7A6D55;
+    }
+    QTableWidget::item:hover {
+        background-color: #D9CFC2;
+    }
+    QTableWidget::item:selected {
+        background-color: #C9B8A8;
+    }
+    QTableCornerButton::section {
+        background-color: #9B8B7E;
+        border: 1px solid #8B7E66;
+    }
+"""
+
+BUTTON_STYLE = """
+    QPushButton {
+        background-color: #8B7E66;
+        color: white;
+        border: none;
+        border-radius: 10px;
+    }
+    QPushButton:hover {
+        background-color: #6B5E46;
+    }
+"""
+
+# Table column configuration
+TABLE_COLUMNS = ["Book ID", "Title", "Author", "ISBN", "Category", "Status", "Added At", "Updated At"]
+COLUMN_WIDTHS = [80, 300, 180, 150, 140, 160, 200, 220]
+COLUMN_NAMES = ['book_id', 'title', 'author', 'isbn', 'category', 'status', 'added_at', 'updated_at']
+
 
 class CatalogManagement(QMainWindow):
-    """Catalog Management screen"""
+    """Main window for catalog management operations."""
     
     def __init__(self, db=None):
+        """
+        Initialize catalog management window.
+        Args:
+            db: Database connection object
+        """
         super().__init__()
         self.db = db
         self.all_books = []
         self.selected_book_id = None
         self.sort_column = None
         self.sort_order = Qt.SortOrder.AscendingOrder
+        
         self.setWindowTitle("Curatel - Catalog Management")
+        
         try:
-            self.setup_ui()
-            self.load_books_from_database()
-            self.show_fullscreen()
+            self._setup_ui()
+            self._load_books_from_database()
+            self._show_fullscreen()
         except Exception as e:
             print(f"[ERROR] Failed to setup Catalog Management: {e}")
             import traceback
             traceback.print_exc()
-            QMessageBox.critical(self, "Error", f"Failed to initialize Catalog Management:\n{str(e)}")
+            QMessageBox.critical(
+                self, "Error",
+                f"Failed to initialize Catalog Management:\n{str(e)}"
+            )
     
-    def setup_ui(self):
-        """Setup UI"""
+    def _setup_ui(self):
+        """Configure main window UI."""
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
-        central_widget.mousePressEvent = self.clear_selection
+        central_widget.mousePressEvent = self._clear_selection
         central_widget.setStyleSheet("background-color: white;")
         
         main_layout = QVBoxLayout(central_widget)
         main_layout.setContentsMargins(40, 20, 40, 30)
         main_layout.setSpacing(-5)
         
-        # Header
+        # Add UI sections
+        main_layout.addLayout(self._create_header())
+        main_layout.addLayout(self._create_search_section())
+        main_layout.addSpacing(5)
+        main_layout.addWidget(self._create_books_table())
+        main_layout.addSpacing(5)
+        main_layout.addLayout(self._create_action_buttons())
+    
+    def _create_header(self):
+        """
+        Create header section with title and subtitle.
+        Returns: QHBoxLayout containing header
+        """
         header_layout = QHBoxLayout()
         header_text = QVBoxLayout()
 
@@ -60,268 +189,155 @@ class CatalogManagement(QMainWindow):
         header_layout.addLayout(header_text)
         header_layout.addStretch()
         
-        main_layout.addLayout(header_layout)
-        
-        # Search and filter section
+        return header_layout
+    
+    def _create_search_section(self):
+        """
+        Create search and filter section.
+        Returns: QHBoxLayout containing search controls
+        """
         search_layout = QHBoxLayout()
         
+        # Search input
         self.search_input = QLineEdit()
         self.search_input.setPlaceholderText("Search by id, title, author, or isbn")
-        self.search_input.setStyleSheet("""
-            QLineEdit {
-                border: 2px solid #8B7E66;
-                border-radius: 10px;
-                padding: 8px 10px;
-                font-family: Montserrat;
-                font-size: 11px;
-                color: black;
-                background-color: white;
-            }
-            QLineEdit:focus {
-                border: 2px solid #6B5E46;
-            }
-            QLineEdit::placeholder {
-                color: gray;
-            }
-        """)
-        self.search_input.setFixedHeight(40)
-        self.search_input.textChanged.connect(self.filter_books)
+        self.search_input.setStyleSheet(SEARCH_INPUT_STYLE)
+        self.search_input.setFixedHeight(SEARCH_HEIGHT)
+        self.search_input.textChanged.connect(self._filter_books)
         search_layout.addWidget(self.search_input)
         search_layout.addSpacing(50)
         
-        category_label = QLabel("Category")
-        category_label.setFont(QFont("Montserrat", 10))
-        category_label.setStyleSheet("color: #000000;")
-        search_layout.addWidget(category_label)
-        
-        self.category_combo = QComboBox()
-        self.category_combo.addItems(["All", "Adventure", "Art", "Biography", "Business", 
-                                       "Cooking", "Fantasy", "Fiction", "History", "Horror", 
-                                       "Mystery", "Non-Fiction", "Poetry", "Romance", "Science", "Technology"])
-        self.category_combo.setStyleSheet("""
-            QComboBox {
-                border: 2px solid #8B7E66;
-                border-radius: 10px;
-                padding: 5px 10px;
-                font-family: Montserrat;
-                font-size: 12px;
-                color: #000000;
-                background-color: white;
-            }
-            QComboBox:focus {
-                border: 2px solid #6B5E46;
-            }
-            QComboBox QAbstractItemView {
-                color: black;
-                background-color: white;
-                selection-background-color: black;
-                selection-color: black;
-            }
-        """)
-        self.category_combo.setFixedSize(120, 40)
-        self.category_combo.currentTextChanged.connect(self.filter_books)
+        # Category filter
+        search_layout.addWidget(self._create_label("Category"))
+        self.category_combo = self._create_combo(
+            ["All", "Adventure", "Art", "Biography", "Business", "Cooking",
+             "Fantasy", "Fiction", "History", "Horror", "Mystery", "Non-Fiction",
+             "Poetry", "Romance", "Science", "Technology"]
+        )
         search_layout.addWidget(self.category_combo)
         search_layout.addSpacing(30)
         
-        status_label = QLabel("Status")
-        status_label.setFont(QFont("Montserrat", 10))
-        status_label.setStyleSheet("color: #000000;")
-        search_layout.addWidget(status_label)
-        self.status_combo = QComboBox()
-        self.status_combo.addItems(["All", "Available", "Borrowed"])
-        self.status_combo.setStyleSheet("""
-            QComboBox {
-                border: 2px solid #8B7E66;
-                border-radius: 10px;
-                padding: 5px 10px;
-                font-family: Montserrat;
-                font-size: 12px;
-                color: #000000;
-                background-color: white;
-            }
-            QComboBox:focus {
-                border: 2px solid #6B5E46;
-            }
-            QComboBox QAbstractItemView {
-                color: #000000;
-                background-color: white;
-                selection-background-color: #D9CFC2;
-                selection-color: black;
-            }
-        """)
-        self.status_combo.setFixedSize(120, 40)
-        self.status_combo.currentTextChanged.connect(self.filter_books)
+        # Status filter
+        search_layout.addWidget(self._create_label("Status"))
+        self.status_combo = self._create_combo(["All", "Available", "Borrowed"])
         search_layout.addWidget(self.status_combo)
         search_layout.addStretch()
-        main_layout.addLayout(search_layout)
-        main_layout.addSpacing(5)
         
-        # Books table
+        return search_layout
+    
+    def _create_label(self, text):
+        """
+        Create filter label.
+        Args:
+            text: Label text
+        Returns: QLabel
+        """
+        label = QLabel(text)
+        label.setFont(QFont("Montserrat", 10))
+        label.setStyleSheet("color: #000000;")
+        return label
+    
+    def _create_combo(self, items):
+        """
+        Create combo box with items.
+        Args:
+            items: List of items for combo box
+        Returns: QComboBox
+        """
+        combo = QComboBox()
+        combo.addItems(items)
+        combo.setStyleSheet(COMBO_STYLE)
+        combo.setFixedSize(120, SEARCH_HEIGHT)
+        combo.currentTextChanged.connect(self._filter_books)
+        return combo
+    
+    def _create_books_table(self):
+        """
+        Create books table widget.
+        Returns: QTableWidget configured for books
+        """
         self.books_table = QTableWidget()
-        self.books_table.setColumnCount(8)
+        self.books_table.setColumnCount(len(TABLE_COLUMNS))
         self.books_table.setSortingEnabled(False)
-        self.books_table.setHorizontalHeaderLabels(["Book ID", "Title", "Author", "ISBN",
-                                                    "Category", "Status", "Added At", "Updated At"])
+        self.books_table.setHorizontalHeaderLabels(TABLE_COLUMNS)
         
+        # Configure table behavior
         self.books_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.books_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.books_table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.books_table.setAlternatingRowColors(True)
-        self.books_table.setStyleSheet("""
-            QTableWidget {
-                border: 1px solid #8B7E66;
-                gridline-color: #8B7E66;
-                background-color: white;
-                selection-background-color: #D9CFC2;
-                selection-color: black;
-            }
-            QHeaderView::section {
-                background-color: #9B8B7E;
-                padding: 8px;
-                font-weight: bold;
-                color: white;
-                font-family: Montserrat;
-                font-size: 12px;
-                border: none;
-            }
-            QHeaderView::section:hover {
-                background-color: #7A6D55;
-            }
-            QTableWidget::item:hover {
-                background-color: #D9CFC2;
-            }
-            QTableWidget::item:selected {
-                background-color: #C9B8A8;
-            }
-            QTableCornerButton::section {
-                background-color: #9B8B7E;
-                border: 1px solid #8B7E66;
-            }
-        """)
+        self.books_table.setStyleSheet(TABLE_STYLE)
         
+        # Configure header
         header = self.books_table.horizontalHeader()
         header.setSectionResizeMode(QHeaderView.ResizeMode.Interactive)
-        self.books_table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Fixed)
         header.setSectionsClickable(True)
         header.setStretchLastSection(True)
         header.setSectionsMovable(True)
         header.setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
-        header.sectionClicked.connect(self.handle_header_click)
+        header.sectionClicked.connect(self._handle_header_click)
         
-        self.books_table.setColumnWidth(0, 80)
-        self.books_table.setColumnWidth(1, 300)
-        self.books_table.setColumnWidth(2, 180)
-        self.books_table.setColumnWidth(3, 150)
-        self.books_table.setColumnWidth(4, 140)
-        self.books_table.setColumnWidth(5, 160)
-        self.books_table.setColumnWidth(6, 200)
-        self.books_table.setColumnWidth(7, 220)
+        # Set column widths
+        for col, width in enumerate(COLUMN_WIDTHS):
+            self.books_table.setColumnWidth(col, width)
         
+        # Configure scrolling
+        self.books_table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Fixed)
         self.books_table.verticalHeader().setVisible(False)
         self.books_table.setHorizontalScrollMode(QTableWidget.ScrollMode.ScrollPerPixel)
         self.books_table.setVerticalScrollMode(QTableWidget.ScrollMode.ScrollPerPixel)
         self.books_table.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         
-        # Connect selection changed signal
-        self.books_table.itemSelectionChanged.connect(self.on_selection_changed)
-
-        main_layout.addWidget(self.books_table)
-        main_layout.addSpacing(5)
-
-        # Action buttons
+        # Connect selection signal
+        self.books_table.itemSelectionChanged.connect(self._on_selection_changed)
+        
+        return self.books_table
+    
+    def _create_action_buttons(self):
+        """
+        Create action button layout.
+        Returns: QHBoxLayout containing action buttons
+        """
         action_layout = QHBoxLayout()
         
-        add_btn = QPushButton("Add Book")
-        add_btn.setFont(QFont("Montserrat", 10))
-        add_btn.setFixedSize(120, 40)
-        add_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #8B7E66;
-                color: white;
-                border: none;
-                border-radius: 10px;
-            }
-            QPushButton:hover {
-                background-color: #6B5E46;
-            }
-        """)
-        add_btn.clicked.connect(self.add_book)
-        action_layout.addWidget(add_btn)
-
-        view_btn = QPushButton("View Book")
-        view_btn.setFont(QFont("Montserrat", 10))
-        view_btn.setFixedSize(120, 40)
-        view_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #8B7E66;
-                color: white;
-                border: none;
-                border-radius: 10px;
-            }
-            QPushButton:hover {
-                background-color: #6B5E46;
-            }
-        """)
-        view_btn.clicked.connect(self.view_book)
-        action_layout.addWidget(view_btn)
+        # CRUD buttons
+        buttons = [
+            ("Add Book", self._add_book),
+            ("View Book", self._view_book),
+            ("Update Book", self._update_book),
+            ("Delete Book", self._delete_book)
+        ]
         
-        update_btn = QPushButton("Update Book")
-        update_btn.setFont(QFont("Montserrat", 10))
-        update_btn.setFixedSize(120, 40)
-        update_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #8B7E66;
-                color: white;
-                border: none;
-                border-radius: 10px;
-            }
-            QPushButton:hover {
-                background-color: #6B5E46;
-            }
-        """)
-        update_btn.clicked.connect(self.update_book)
-        action_layout.addWidget(update_btn)
-        
-        delete_btn = QPushButton("Delete Book")
-        delete_btn.setFont(QFont("Montserrat", 10))
-        delete_btn.setFixedSize(120, 40)
-        delete_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #8B7E66;
-                color: white;
-                border: none;
-                border-radius: 10px;
-            }
-            QPushButton:hover {
-                background-color: #6B5E46;
-            }
-        """)
-        delete_btn.clicked.connect(self.delete_book)
-        action_layout.addWidget(delete_btn)
+        for text, callback in buttons:
+            btn = self._create_button(text, callback)
+            action_layout.addWidget(btn)
         
         action_layout.addStretch()
         
-        back_btn = QPushButton("Back to Dashboard")
-        back_btn.setFont(QFont("Montserrat", 10))
-        back_btn.setFixedSize(150, 40)
-        back_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #8B7E66;
-                color: white;
-                border: none;
-                border-radius: 10px;
-            }
-            QPushButton:hover {
-                background-color: #6B5E46;
-            }
-        """)
-        back_btn.clicked.connect(self.go_back_to_dashboard)
+        # Back button
+        back_btn = self._create_button("Back to Dashboard", self._go_back_to_dashboard)
+        back_btn.setFixedSize(150, BUTTON_HEIGHT)
         action_layout.addWidget(back_btn)
         
-        main_layout.addLayout(action_layout)
+        return action_layout
     
-    def on_selection_changed(self):
-        """Track selected book when selection changes"""
+    def _create_button(self, text, callback):
+        """
+        Create styled button.
+        Args:
+            text: Button text
+            callback: Click callback function
+        Returns: QPushButton
+        """
+        btn = QPushButton(text)
+        btn.setFont(QFont("Montserrat", 10))
+        btn.setFixedSize(BUTTON_WIDTH, BUTTON_HEIGHT)
+        btn.setStyleSheet(BUTTON_STYLE)
+        btn.clicked.connect(callback)
+        return btn
+    
+    def _on_selection_changed(self):
+        """Track selected book when selection changes."""
         try:
             selected_row = self.books_table.currentRow()
             if selected_row >= 0:
@@ -329,44 +345,50 @@ class CatalogManagement(QMainWindow):
             else:
                 self.selected_book_id = None
         except Exception as e:
-            print(f"[ERROR] Selection change error: {e}")
+            print(f"[ERROR] Selection change: {e}")
             self.selected_book_id = None
     
-    def clear_selection(self, event):
-        """Clear table selection when clicking empty space"""
+    def _clear_selection(self, event):
+        """Clear table selection when clicking empty space."""
         try:
             if self.books_table:
                 self.books_table.clearSelection()
                 self.selected_book_id = None
-            if hasattr(self, "search_input"):
-                self.search_input.clearFocus()
-            if hasattr(self, "category_combo"):
-                self.category_combo.clearFocus()
-            if hasattr(self, "status_combo"):
-                self.status_combo.clearFocus()
+            
+            # Clear focus from input widgets
+            for widget in [self.search_input, self.category_combo, self.status_combo]:
+                if hasattr(self, widget.__class__.__name__.lower().replace('q', '')):
+                    widget.clearFocus()
         except Exception as e:
-            print(f"[WARN] clear_selection error: {e}")
+            print(f"[WARN] Clear selection: {e}")
+        
         QWidget.mousePressEvent(self.centralWidget(), event)
     
-    def handle_header_click(self, logical_index):
-        """Handle column header click for sorting"""
+    def _handle_header_click(self, logical_index):
+        """
+        Handle column header click for sorting.
+        Args:
+            logical_index: Column index clicked
+        """
         try:
             if self.sort_column == logical_index:
-                self.sort_order = Qt.SortOrder.DescendingOrder if self.sort_order == Qt.SortOrder.AscendingOrder else Qt.SortOrder.AscendingOrder
+                self.sort_order = (
+                    Qt.SortOrder.DescendingOrder
+                    if self.sort_order == Qt.SortOrder.AscendingOrder
+                    else Qt.SortOrder.AscendingOrder
+                )
             else:
                 self.sort_column = logical_index
                 self.sort_order = Qt.SortOrder.AscendingOrder
             
-            self.filter_books()
+            self._filter_books()
         except Exception as e:
-            print(f"[ERROR] Header click error: {e}")
+            print(f"[ERROR] Header click: {e}")
             QMessageBox.warning(self, "Error", "Failed to sort table")
-
-    def load_books_from_database(self):
-        """Load all books from database"""
-        if not self.db or not self.db.connection:
-            print("[WARNING] No database connection")
-            QMessageBox.warning(self, "Database Error", "Not connected to database.")
+    
+    def _load_books_from_database(self):
+        """Load all books from database."""
+        if not self._validate_database_connection():
             return
         
         try:
@@ -375,7 +397,7 @@ class CatalogManagement(QMainWindow):
             
             if self.all_books:
                 print(f"[OK] Loaded {len(self.all_books)} books")
-                self.filter_books()
+                self._filter_books()
             else:
                 print("[WARNING] No books found")
                 self.books_table.setRowCount(0)
@@ -386,79 +408,47 @@ class CatalogManagement(QMainWindow):
             traceback.print_exc()
             QMessageBox.critical(self, "Error", f"Failed to load books:\n{str(e)}")
     
-    def display_books(self, books):
-        """Display books in the table"""
+    def _display_books(self, books):
+        """
+        Display books in table.
+        Args:
+            books: List of book dictionaries
+        """
         try:
             self.books_table.setRowCount(len(books))
             
             for row, book in enumerate(books):
-                # Book ID
-                item = QTableWidgetItem(str(book['book_id']))
-                item.setFont(QFont("Montserrat", 10))
-                item.setForeground(QColor("#000000"))
-                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
-                self.books_table.setItem(row, 0, item)
-                
-                # Title
-                item = QTableWidgetItem(str(book['title']))
-                item.setFont(QFont("Montserrat", 10))
-                item.setForeground(QColor("#000000"))
-                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
-                self.books_table.setItem(row, 1, item)
-                
-                # Author
-                item = QTableWidgetItem(str(book['author']))
-                item.setFont(QFont("Montserrat", 10))
-                item.setForeground(QColor("#000000"))
-                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
-                self.books_table.setItem(row, 2, item)
-                
-                # ISBN
-                item = QTableWidgetItem(str(book['isbn']))
-                item.setFont(QFont("Montserrat", 10))
-                item.setForeground(QColor("#000000"))
-                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
-                self.books_table.setItem(row, 3, item)
-                
-                # Category
-                item = QTableWidgetItem(str(book['category']))
-                item.setFont(QFont("Montserrat", 10))
-                item.setForeground(QColor("#000000"))
-                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
-                self.books_table.setItem(row, 4, item)
-                
-                # Status with color
-                item = QTableWidgetItem(str(book['status']))
-                item.setFont(QFont("Montserrat", 10))
-                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
-                if book['status'] == 'Available':
-                    item.setForeground(QColor("#228C3A"))
-                else:
-                    item.setForeground(QColor("#DC3545"))
-                self.books_table.setItem(row, 5, item)
-                
-                # Added At
-                added_at = str(book['added_at']) if book['added_at'] else ""
-                item = QTableWidgetItem(added_at)
-                item.setFont(QFont("Montserrat", 10))
-                item.setForeground(QColor("#000000"))
-                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
-                self.books_table.setItem(row, 6, item)
-                
-                # Updated At
-                updated_at = str(book['updated_at']) if book['updated_at'] else ""
-                item = QTableWidgetItem(updated_at)
-                item.setFont(QFont("Montserrat", 10))
-                item.setForeground(QColor("#000000"))
-                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
-                self.books_table.setItem(row, 7, item)
+                for col, key in enumerate(COLUMN_NAMES):
+                    value = str(book.get(key, ''))
+                    item = self._create_table_item(value)
+                    
+                    # Apply status color
+                    if col == 5:  # Status column
+                        color = STATUS_AVAILABLE if book['status'] == 'Available' else STATUS_BORROWED
+                        item.setForeground(QColor(color))
+                    
+                    self.books_table.setItem(row, col, item)
+                    
         except Exception as e:
-            print(f"[ERROR] Display books error: {e}")
+            print(f"[ERROR] Display books: {e}")
             import traceback
             traceback.print_exc()
     
-    def filter_books(self):
-        """Filter books based on search and combo selections"""
+    def _create_table_item(self, text):
+        """
+        Create formatted table item.
+        Args:
+            text: Item text
+        Returns: QTableWidgetItem
+        """
+        item = QTableWidgetItem(text)
+        item.setFont(QFont("Montserrat", 10))
+        item.setForeground(QColor(TEXT_BLACK))
+        item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
+        return item
+    
+    def _filter_books(self):
+        """Filter books based on search criteria."""
         try:
             if not self.all_books:
                 return
@@ -467,59 +457,104 @@ class CatalogManagement(QMainWindow):
             category = self.category_combo.currentText()
             status = self.status_combo.currentText()
             
-            filtered_books = []
+            # Apply filters
+            filtered_books = [
+                book for book in self.all_books
+                if self._matches_filters(book, search_text, category, status)
+            ]
             
-            for book in self.all_books:
-                if category != "All" and book['category'] != category:
-                    continue
-                
-                if status != "All" and book['status'] != status:
-                    continue
-                
-                if search_text:
-                    if not (search_text in str(book['book_id']).lower() or
-                            search_text in str(book['title']).lower() or
-                            search_text in str(book['author']).lower() or
-                            search_text in str(book['isbn']).lower()):
-                        continue
-                
-                filtered_books.append(book)
-            
-            # Apply sorting if column is selected
+            # Apply sorting
             if self.sort_column is not None and filtered_books:
-                column_names = ['book_id', 'title', 'author', 'isbn', 'category', 'status', 'added_at', 'updated_at']
-                if self.sort_column < len(column_names):
-                    sort_key = column_names[self.sort_column]
-                    filtered_books.sort(
-                        key=lambda x: str(x.get(sort_key, '')).lower(),
-                        reverse=(self.sort_order == Qt.SortOrder.DescendingOrder)
-                    )
+                filtered_books = self._sort_books(filtered_books)
             
-            self.display_books(filtered_books)
+            self._display_books(filtered_books)
             print(f"[INFO] Filtered to {len(filtered_books)} books")
+            
         except Exception as e:
-            print(f"[ERROR] Filter books error: {e}")
+            print(f"[ERROR] Filter books: {e}")
             import traceback
             traceback.print_exc()
     
-    def add_book(self):
-        """Open add book dialog"""
+    def _matches_filters(self, book, search_text, category, status):
+        """
+        Check if book matches filter criteria.
+        Args:
+            book: Book dictionary
+            search_text: Search string
+            category: Category filter
+            status: Status filter
+        Returns: True if matches, False otherwise
+        """
+        if category != "All" and book['category'] != category:
+            return False
+        
+        if status != "All" and book['status'] != status:
+            return False
+        
+        if search_text:
+            searchable = [
+                str(book.get('book_id', '')),
+                str(book.get('title', '')),
+                str(book.get('author', '')),
+                str(book.get('isbn', ''))
+            ]
+            if not any(search_text in field.lower() for field in searchable):
+                return False
+        
+        return True
+    
+    def _sort_books(self, books):
+        """
+        Sort books by selected column.
+        Args:
+            books: List of book dictionaries
+        Returns: Sorted list
+        """
+        if self.sort_column < len(COLUMN_NAMES):
+            sort_key = COLUMN_NAMES[self.sort_column]
+            return sorted(
+                books,
+                key=lambda x: str(x.get(sort_key, '')).lower(),
+                reverse=(self.sort_order == Qt.SortOrder.DescendingOrder)
+            )
+        return books
+    
+    def _validate_database_connection(self):
+        """
+        Validate database connection.
+        Returns: True if connected, False otherwise
+        """
+        if not self.db or not self.db.connection:
+            print("[WARNING] No database connection")
+            QMessageBox.warning(self, "Database Error", "Not connected to database.")
+            return False
+        return True
+    
+    def _validate_selection(self):
+        """
+        Validate book selection.
+        Returns: True if book selected, False otherwise
+        """
+        if not self.selected_book_id:
+            QMessageBox.warning(self, "No Selection", "Please select a book first.")
+            return False
+        return True
+    
+    def _add_book(self):
+        """Open add book dialog."""
         try:
-            dialog = AddBookDialog(self, self.db, self.load_books_from_database)
+            dialog = AddBookDialog(self, self.db, self._load_books_from_database)
             dialog.exec()
         except Exception as e:
-            print(f"[ERROR] Add book error: {e}")
-            import traceback
-            traceback.print_exc()
+            print(f"[ERROR] Add book: {e}")
             QMessageBox.critical(self, "Error", "Failed to open add book dialog")
     
-    def view_book(self):
-        """View selected book"""
+    def _view_book(self):
+        """View selected book."""
+        if not self._validate_selection():
+            return
+        
         try:
-            if not self.selected_book_id:
-                QMessageBox.warning(self, "No Selection", "Please select a book to view")
-                return
-            
             query = "SELECT * FROM books WHERE book_id = %s"
             book_data = self.db.fetch_one(query, (self.selected_book_id,))
             
@@ -528,87 +563,72 @@ class CatalogManagement(QMainWindow):
                 dialog.exec()
             else:
                 QMessageBox.warning(self, "Error", "Book not found in database")
-                self.load_books_from_database()
+                self._load_books_from_database()
+                
         except Exception as e:
-            print(f"[ERROR] View book error: {e}")
-            import traceback
-            traceback.print_exc()
+            print(f"[ERROR] View book: {e}")
             QMessageBox.critical(self, "Error", f"Failed to view book:\n{str(e)}")
-
-    def update_book(self):
-        """Update selected book"""
+    
+    def _update_book(self):
+        """Update selected book."""
+        if not self._validate_selection():
+            return
+        
         try:
-            if not self.selected_book_id:
-                QMessageBox.warning(self, "No Selection", "Please select a book to update")
-                return
-            
             query = "SELECT * FROM books WHERE book_id = %s"
             book_data = self.db.fetch_one(query, (self.selected_book_id,))
             
             if book_data:
-                dialog = UpdateBookDialog(self, self.db, book_data, self.load_books_from_database)
+                dialog = UpdateBookDialog(self, self.db, book_data, self._load_books_from_database)
                 dialog.exec()
             else:
                 QMessageBox.warning(self, "Error", "Book not found in database")
-                self.load_books_from_database()
+                self._load_books_from_database()
+                
         except Exception as e:
-            print(f"[ERROR] Update book error: {e}")
-            import traceback
-            traceback.print_exc()
+            print(f"[ERROR] Update book: {e}")
             QMessageBox.critical(self, "Error", f"Failed to update book:\n{str(e)}")
     
-    def delete_book(self):
-        """Delete selected book"""
+    def _delete_book(self):
+        """Delete selected book."""
+        if not self._validate_selection():
+            return
+        
         try:
-            if not self.selected_book_id:
-                QMessageBox.warning(self, "No Selection", "Please select a book to delete")
-                return
-            
-            # Get book title for confirmation
             query = "SELECT title FROM books WHERE book_id = %s"
             book_data = self.db.fetch_one(query, (self.selected_book_id,))
             
             if not book_data:
                 QMessageBox.warning(self, "Error", "Book not found in database")
-                self.load_books_from_database()
+                self._load_books_from_database()
                 return
             
-            book_title = book_data['title']
-            
-            dialog = ConfirmDeleteDialog(self, book_title)
+            dialog = ConfirmDeleteDialog(self, book_data['title'])
             if dialog.exec() == QDialog.DialogCode.Accepted:
-                query = "DELETE FROM books WHERE book_id = %s"
-                if self.db.execute_query(query, (self.selected_book_id,)):
-                    QMessageBox.information(self, "Success", f"Book '{book_title}' deleted successfully!")
+                delete_query = "DELETE FROM books WHERE book_id = %s"
+                if self.db.execute_query(delete_query, (self.selected_book_id,)):
+                    QMessageBox.information(
+                        self, "Success",
+                        f"Book '{book_data['title']}' deleted successfully!"
+                    )
                     self.selected_book_id = None
-                    self.load_books_from_database()
+                    self._load_books_from_database()
                 else:
-                    QMessageBox.critical(self, "Error", "Failed to delete book from database")
+                    QMessageBox.critical(self, "Error", "Failed to delete book")
+                    
         except Exception as e:
-            print(f"[ERROR] Delete book error: {e}")
-            import traceback
-            traceback.print_exc()
+            print(f"[ERROR] Delete book: {e}")
             QMessageBox.critical(self, "Error", f"Failed to delete book:\n{str(e)}")
     
-    def go_back_to_dashboard(self):
-        """Go back to dashboard"""
-        try:
-            self.close()
-        except Exception as e:
-            print(f"[ERROR] Go back error: {e}")
+    def _go_back_to_dashboard(self):
+        """Close window and return to dashboard."""
+        self.close()
     
-    def show_fullscreen(self):
-        """Show window maximized"""
-        try:
-            self.setWindowState(Qt.WindowState.WindowMaximized)
-            self.showMaximized()
-        except Exception as e:
-            print(f"[ERROR] Show fullscreen error: {e}")
+    def _show_fullscreen(self):
+        """Display window in maximized state."""
+        self.setWindowState(Qt.WindowState.WindowMaximized)
+        self.showMaximized()
     
     def closeEvent(self, event):
-        """Handle window close"""
-        try:
-            event.accept()
-        except Exception as e:
-            print(f"[ERROR] Close event error: {e}")
-            event.accept()
+        """Handle window close event."""
+        event.accept()

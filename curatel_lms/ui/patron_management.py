@@ -1,4 +1,4 @@
-# ui/patron_management.py
+# curatel_lms/ui/patron_management.py
 
 from PyQt6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
                               QPushButton, QLineEdit, QTableWidget, QTableWidgetItem, 

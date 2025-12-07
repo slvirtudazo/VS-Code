@@ -160,7 +160,8 @@ class AddBorrowDialog(QDialog):
         button_layout.addStretch()
 
         save_btn = QPushButton("Save")
-        save_btn.setFixedSize(180, 60)
+        save_btn.setFixedSize(150, 60)
+        save_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         save_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         save_btn.setStyleSheet("""
             QPushButton {
@@ -180,7 +181,8 @@ class AddBorrowDialog(QDialog):
         button_layout.addWidget(save_btn)
 
         cancel_btn = QPushButton("Cancel")
-        cancel_btn.setFixedSize(180, 60)
+        cancel_btn.setFixedSize(150, 60)
+        cancel_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         cancel_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         cancel_btn.setStyleSheet("""
             QPushButton {
@@ -425,7 +427,6 @@ class ViewBorrowDialog(QDialog):
 
         close_btn = QPushButton("Close")
         close_btn.setFixedSize(150, 60)
-        close_btn.setFont(QFont("Montserrat", 15))
         close_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         close_btn.setStyleSheet("""
             QPushButton {
@@ -721,6 +722,7 @@ class UpdateBorrowDialog(QDialog):
                 background-color: #A3B087;
             }
         """)
+        update_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         update_btn.clicked.connect(self.update_borrow)
         button_layout.addWidget(update_btn)
 
@@ -742,6 +744,7 @@ class UpdateBorrowDialog(QDialog):
                 background-color: #CD5656;
             }
         """)
+        cancel_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         cancel_btn.clicked.connect(self.reject)
         button_layout.addWidget(cancel_btn)
 
