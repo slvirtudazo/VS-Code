@@ -1,39 +1,35 @@
 import random
 import csv
 import sys
-from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
-                              QHBoxLayout, QLabel, QLineEdit, QPushButton, 
-                              QTextEdit, QTabWidget, QMessageBox, QFileDialog)
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont
 
+from PyQt6.QtCore import Qt, QTimer
+from PyQt6.QtGui import QFont
+from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
+                             QHBoxLayout, QLabel, QLineEdit, QPushButton, 
+                             QTextEdit, QTabWidget, QMessageBox, QFileDialog)
+
+# Core logic class for password and pattern operations
 class PasswordPatternSystem:
-    """Handles password generation and binary pattern analysis with discrete math"""
+    """Generates passwords and analyzes binary patterns without consecutive 1s."""
     
     def __init__(self):
         self.uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
         self.lowercase = 'abcdefghijklmnopqrstuvwxyz'
         self.digits = '0123456789'
     
-    # Password Generator Module
-    
+    # Total possible password combinations
     def calculate_total_passwords(self):
-        """
-        Calculates total possible passwords using counting principle
-        Format: 1 uppercase + 3 unique digits + 1 lowercase
-        Result: 26 × P(10,3) × 26 = 486,720
-        """
-        return 26 * 10 * 9 * 8 * 26  # 486,720
+        return 26 * 10 * 9 * 8 * 26
     
+    # Generate one random password
     def generate_password(self):
-        """Creates one password: uppercase + 3 unique digits + lowercase"""
         upper = random.choice(self.uppercase)
         three_digits = ''.join(random.sample(self.digits, 3))
         lower = random.choice(self.lowercase)
         return upper + three_digits + lower
     
+    # Generate multiple unique passwords (1–20)
     def generate_multiple_passwords(self, count):
-        """Creates multiple unique passwords (between 1-20)"""
         if not 1 <= count <= 20:
             raise ValueError("Password count must be between 1 and 20")
         
@@ -47,14 +43,8 @@ class PasswordPatternSystem:
         
         return list(passwords)
     
-    # Binary Pattern Analyzer Module
-    
+    # Count valid binary strings of length n without consecutive 1s
     def count_valid_binary_strings(self, n):
-        """
-        Counts binary strings without consecutive 1s
-        Uses recurrence: S(n) = S(n-1) + S(n-2) with S(0)=1, S(1)=2
-        Runs in O(n) time via dynamic programming
-        """
         if n < 0:
             raise ValueError("n must be non-negative")
         if n == 0:
@@ -62,7 +52,6 @@ class PasswordPatternSystem:
         if n == 1:
             return 2
         
-        # Store computed values in array
         dp = [0] * (n + 1)
         dp[0], dp[1] = 1, 2
         
@@ -71,8 +60,8 @@ class PasswordPatternSystem:
         
         return dp[n]
     
+    # Generate all valid binary strings of length n
     def generate_valid_binary_strings(self, n):
-        """Builds all valid binary strings through recursive backtracking"""
         if n < 0:
             raise ValueError("n must be non-negative")
         if n == 0:
@@ -81,63 +70,53 @@ class PasswordPatternSystem:
         valid = []
         
         def backtrack(s):
-            """Recursively constructs valid strings"""
             if len(s) == n:
                 valid.append(s)
                 return
-            
-            # Can always add 0
             backtrack(s + '0')
-            
-            # Add 1 only if last char isn't 1
             if not s or s[-1] == '0':
                 backtrack(s + '1')
         
         backtrack('')
         return valid
     
-    # File Export Functions
-    
+    # Save passwords to a .txt file in standardized format
     def export_passwords_to_txt(self, passwords, filename='passwords.txt'):
-        """Saves passwords to text file"""
         try:
             with open(filename, 'w') as f:
-                f.write("Generated Passwords:\n\n")
+                f.write("Generated passwords:\n\n")
                 for i, pwd in enumerate(passwords, 1):
                     f.write(f"{i}. {pwd}\n")
-                f.write(f"\nTotal: {len(passwords)}\n")
+                f.write(f"\nTotal: {len(passwords)}")
             return True
         except Exception as e:
             print(f"Export error: {e}")
             return False
     
+    # Save binary analysis results to a .csv file in standardized format
     def export_binary_strings_to_csv(self, n, strings, count, filename='binary_strings.csv'):
-        """Saves binary analysis to CSV file"""
         try:
             with open(filename, 'w', newline='') as f:
                 writer = csv.writer(f)
-                writer.writerow(['Analyzed Binary Pattern:'])
+                writer.writerow([f"Results for n = {n}:"])
                 writer.writerow([])
-                writer.writerow([f'Results for n = {n}:'])
-                writer.writerow([])
-                writer.writerow(['Valid strings:'])
+                writer.writerow(["Valid strings:"])
                 writer.writerow([])
                 
-                if strings:
+                if strings is not None:
                     for i, s in enumerate(strings, 1):
-                        writer.writerow([f'{i}. {s if s else "(empty)"}'])
-                
+                        display = s if s != '' else "(empty)"
+                        writer.writerow([f"{i}. {display}"])
                 writer.writerow([])
-                writer.writerow([f'Total: {count}'])
+                writer.writerow([f"Total: {count}"])
             return True
         except Exception as e:
             print(f"Export error: {e}")
             return False
 
-# Console Interface
-
+# Console UI
 def console_app():
-    """Text-based user interface"""
+    """Runs the text-based interface."""
     system = PasswordPatternSystem()
     
     print("\nPASSWORD GENERATOR AND PATTERN ANALYZER")
@@ -152,7 +131,6 @@ def console_app():
             choice = input("\nChoice (1-3): ").strip()
             
             if choice == '1':
-                # Password Generator
                 print("\nPASSWORD GENERATOR")
                 print(f"Total possible combinations: {system.calculate_total_passwords():,}")
                 
@@ -167,11 +145,11 @@ def console_app():
                 
                 passwords = system.generate_multiple_passwords(count)
                 
-                print(f"\n{len(passwords)} passwords generated:")
+                print("\nGenerated passwords:\n")
                 for i, pwd in enumerate(passwords, 1):
-                    print(f"{i:2}. {pwd}")
+                    print(f"{i}. {pwd}")
+                print(f"\nTotal: {len(passwords)}")
                 
-                # Offer export option
                 if input("\nExport to file? (Y/N): ").lower() == 'y':
                     fname = input("Enter filename (default: passwords.txt): ").strip()
                     fname = fname if fname else 'passwords.txt'
@@ -179,7 +157,6 @@ def console_app():
                         print(f"Exported to '{fname}'")
                 
             elif choice == '2':
-                # Pattern Analyzer
                 print("\nPATTERN ANALYZER")
                 print("Count binary strings without consecutive 1s")
                 
@@ -195,15 +172,14 @@ def console_app():
                 count = system.count_valid_binary_strings(n)
                 print(f"\nResults for n = {n}:")
                 
-                # List strings if small enough
                 if n <= 5:
                     strings = system.generate_valid_binary_strings(n)
-                    print("\nValid strings:")
+                    print(f"\nValid strings:\n")
                     for i, s in enumerate(strings, 1):
-                        print(f"{i:2}. {s if s else '(empty)'}")
-                    print(f"\nValid strings: {count}")
+                        display = s if s != '' else "(empty)"
+                        print(f"{i}. {display}")
+                    print(f"\nTotal: {count}")
                     
-                    # Offer export option
                     if input("\nExport to CSV? (Y/N): ").lower() == 'y':
                         fname = input("Enter filename (default: binary_strings.csv): ").strip()
                         fname = fname if fname else 'binary_strings.csv'
@@ -224,10 +200,9 @@ def console_app():
         except Exception as e:
             print(f"\nError: {e}")
 
-# Graphical User Interface
-
+# Graphical UI
 class PasswordPatternGUI(QMainWindow):
-    """Visual interface for password and pattern operations"""
+    """Main GUI window with password and pattern tabs."""
     
     def __init__(self):
         super().__init__()
@@ -236,9 +211,9 @@ class PasswordPatternGUI(QMainWindow):
         self.current_binary_data = None
         
         self.setWindowTitle("Password Generator & Pattern Analyzer")
-        self.setGeometry(100, 100, 900, 700)
+        self.resize(900, 700)
         
-        # Set application stylesheet with pastel beige and deep maroon theme
+        # Pastel theme styling
         self.setStyleSheet("""
             QMainWindow {
                 background-color: #F5E6D3;
@@ -300,7 +275,7 @@ class PasswordPatternGUI(QMainWindow):
                 border-radius: 8px;
                 padding: 10px 24px;
                 font-family: 'Montserrat';
-                font-size: 11pt;
+                font-size: 10pt;
                 font-weight: bold;
                 min-width: 120px;
                 min-height: 40px;
@@ -313,47 +288,33 @@ class PasswordPatternGUI(QMainWindow):
             }
         """)
         
-        # Center window on screen
-        self.center_on_screen()
-        
-        # Create main widget and layout
+        # Main layout and tabs
         main_widget = QWidget()
         self.setCentralWidget(main_widget)
         main_layout = QVBoxLayout()
         main_layout.setContentsMargins(20, 20, 20, 20)
         main_widget.setLayout(main_layout)
         
-        # Create tab widget
         self.tabs = QTabWidget()
         main_layout.addWidget(self.tabs)
         
-        # Create tabs
         self.create_password_tab()
         self.create_pattern_tab()
     
-    def center_on_screen(self):
-        """Centers the window on screen"""
-        screen = QApplication.primaryScreen().geometry()
-        window = self.frameGeometry()
-        center = screen.center()
-        window.moveCenter(center)
-        self.move(window.topLeft())
-    
+    # Build password generator tab UI
     def create_password_tab(self):
-        """Sets up password generator interface"""
+        """Creates the password generator tab UI."""
         tab = QWidget()
         layout = QVBoxLayout()
         layout.setSpacing(20)
         layout.setContentsMargins(30, 30, 30, 30)
         
-        # Title section
         title = QLabel("Password Generator")
         title.setFont(QFont('Montserrat', 15, QFont.Weight.Bold))
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title.setStyleSheet("color: #4A0E0E; margin-bottom: 10px;")
         layout.addWidget(title)
         
-        # Show total combinations
         total = self.system.calculate_total_passwords()
         info = QLabel(f"Total possible combinations: {total:,}")
         info.setFont(QFont('Montserrat', 11, QFont.Weight.Normal))
@@ -361,10 +322,8 @@ class PasswordPatternGUI(QMainWindow):
         info.setStyleSheet("color: #4A0E0E; margin-bottom: 20px;")
         layout.addWidget(info)
         
-        # Input controls
         input_layout = QHBoxLayout()
         input_layout.setSpacing(15)
-        
         input_layout.addStretch()
         
         label = QLabel("Count (1-20):")
@@ -404,7 +363,6 @@ class PasswordPatternGUI(QMainWindow):
         input_layout.addStretch()
         layout.addLayout(input_layout)
         
-        # Results display
         self.pwd_output = QTextEdit()
         self.pwd_output.setReadOnly(True)
         layout.addWidget(self.pwd_output)
@@ -412,14 +370,14 @@ class PasswordPatternGUI(QMainWindow):
         tab.setLayout(layout)
         self.tabs.addTab(tab, "Password Generator")
     
+    # Build binary pattern analyzer tab UI
     def create_pattern_tab(self):
-        """Sets up pattern analyzer interface"""
+        """Creates the binary pattern analyzer tab UI."""
         tab = QWidget()
         layout = QVBoxLayout()
         layout.setSpacing(20)
         layout.setContentsMargins(30, 30, 30, 30)
         
-        # Title section
         title = QLabel("Binary Pattern Analyzer")
         title.setFont(QFont('Montserrat', 15, QFont.Weight.Bold))
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -432,10 +390,8 @@ class PasswordPatternGUI(QMainWindow):
         subtitle.setStyleSheet("color: #4A0E0E; margin-bottom: 20px;")
         layout.addWidget(subtitle)
         
-        # Input controls
         input_layout = QHBoxLayout()
         input_layout.setSpacing(15)
-        
         input_layout.addStretch()
         
         label = QLabel("Length n:")
@@ -475,7 +431,6 @@ class PasswordPatternGUI(QMainWindow):
         input_layout.addStretch()
         layout.addLayout(input_layout)
         
-        # Results display
         self.pattern_output = QTextEdit()
         self.pattern_output.setReadOnly(True)
         layout.addWidget(self.pattern_output)
@@ -483,8 +438,9 @@ class PasswordPatternGUI(QMainWindow):
         tab.setLayout(layout)
         self.tabs.addTab(tab, "Pattern Analyzer")
     
+    # Handle password generation from GUI input
     def generate_passwords(self):
-        """Processes password generation request"""
+        """Generates and displays passwords based on user input."""
         try:
             count = int(self.pwd_count_input.text())
             if not 1 <= count <= 20:
@@ -493,19 +449,20 @@ class PasswordPatternGUI(QMainWindow):
             
             passwords = self.system.generate_multiple_passwords(count)
             
-            output = "Generated Passwords:\n\n"
+            output = "Generated passwords:\n\n"
             for i, pwd in enumerate(passwords, 1):
                 output += f"{i}. {pwd}\n"
             output += f"\nTotal: {len(passwords)}"
-            
+        
             self.pwd_output.setPlainText(output)
             self.current_passwords = passwords
             
         except ValueError:
             QMessageBox.critical(self, "Error", "Enter a valid number")
     
+    # Export passwords via file dialog
     def export_passwords(self):
-        """Saves passwords to chosen file"""
+        """Exports generated passwords to a text file."""
         if not self.current_passwords:
             QMessageBox.warning(self, "Warning", "Generate passwords first")
             return
@@ -518,8 +475,9 @@ class PasswordPatternGUI(QMainWindow):
             if self.system.export_passwords_to_txt(self.current_passwords, filename):
                 QMessageBox.information(self, "Success", f"Exported to '{filename}'")
     
+    # Handle binary pattern analysis from GUI input
     def analyze_pattern(self):
-        """Processes pattern analysis request"""
+        """Analyzes and displays valid binary strings for given n."""
         try:
             n = int(self.n_input.text())
             if n < 0:
@@ -527,29 +485,27 @@ class PasswordPatternGUI(QMainWindow):
                 return
             
             count = self.system.count_valid_binary_strings(n)
-            
-            output = "Analyzed Binary Pattern:\n\n"
-            output += f"Results for n = {n}:\n\n"
-            output += "Valid strings:\n\n"
+            output = f"Results for n = {n}:\n\nValid strings:\n\n"
             
             if n <= 5:
                 strings = self.system.generate_valid_binary_strings(n)
                 for i, s in enumerate(strings, 1):
-                    output += f"{i}. {s if s else '(empty)'}\n"
+                    display = s if s != '' else "(empty)"
+                    output += f"{i}. {display}\n"
                 self.current_binary_data = (n, strings, count)
             else:
                 output += "(List not shown for n > 5)\n"
                 self.current_binary_data = (n, None, count)
             
             output += f"\nTotal: {count}"
-            
             self.pattern_output.setPlainText(output)
             
         except ValueError:
             QMessageBox.critical(self, "Error", "Enter a valid integer")
     
+    # Export binary results via file dialog
     def export_binary(self):
-        """Saves binary analysis to chosen file"""
+        """Exports binary analysis results to a CSV file."""
         if not self.current_binary_data:
             QMessageBox.warning(self, "Warning", "Analyze a pattern first")
             return
@@ -563,20 +519,32 @@ class PasswordPatternGUI(QMainWindow):
             if self.system.export_binary_strings_to_csv(n, strings, count, filename):
                 QMessageBox.information(self, "Success", f"Exported to '{filename}'")
 
+# Launch GUI with centering and initial focus
 def run_gui():
-    """Opens the graphical interface"""
+    """Launches the centered GUI and ensures it appears on top initially."""
     app = QApplication(sys.argv)
     window = PasswordPatternGUI()
-    window.show()
     
-    # Bring window to front
+    # Center window on screen
+    screen = app.primaryScreen().availableGeometry()
+    window_rect = window.frameGeometry()
+    window_rect.moveCenter(screen.center())
+    window.move(window_rect.topLeft())
+    
+    # Show on top once, then revert to normal behavior
+    window.setWindowFlags(window.windowFlags() | Qt.WindowType.WindowStaysOnTopHint)
+    window.show()
     window.raise_()
     window.activateWindow()
     
+    QTimer.singleShot(100, lambda: (
+        window.setWindowFlags(window.windowFlags() & ~Qt.WindowType.WindowStaysOnTopHint),
+        window.show()
+    ))
+    
     sys.exit(app.exec())
 
-# Main Entry Point
-
+# Main entry point
 if __name__ == "__main__":
     print("\nSelect Interface:")
     print("1. Console Mode")
