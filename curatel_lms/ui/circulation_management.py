@@ -1,4 +1,9 @@
-# ui/circulation_management.py - COMPLETE FIXED VERSION
+# curatel_lms/ui/circulation_management.py - COMPLETE FIXED VERSION
+
+"""
+Circulation management module.
+Main window for managing library transactions.
+"""
 
 from PyQt6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
                               QPushButton, QLineEdit, QTableWidget, QTableWidgetItem, 
@@ -9,9 +14,116 @@ from PyQt6.QtGui import QFont, QColor
 from curatel_lms.ui.circulation_dialogs import (AddBorrowDialog, ViewBorrowDialog, 
                                                  UpdateBorrowDialog, ConfirmDeleteBorrowDialog)
 
+# UI Constants
+BUTTON_WIDTH_STANDARD = 140
+BUTTON_WIDTH_WIDE = 150
+BUTTON_HEIGHT = 40
+SEARCH_HEIGHT = 40
+
+# Color Constants
+STATUS_BORROWED = "#FFA500"
+STATUS_RETURNED = "#228C3A"
+STATUS_OVERDUE = "#DC3545"
+TEXT_BLACK = "#000000"
+
+# Style Constants
+SEARCH_INPUT_STYLE = """
+    QLineEdit {
+        border: 2px solid #8B7E66;
+        border-radius: 10px;
+        padding: 8px 10px;
+        font-family: Montserrat;
+        font-size: 11px;
+        color: black;
+        background-color: white;
+    }
+    QLineEdit:focus {
+        border: 2px solid #6B5E46;
+    }
+    QLineEdit::placeholder {
+        color: gray;
+    }
+"""
+
+COMBO_STYLE = """
+    QComboBox {
+        border: 2px solid #8B7E66;
+        border-radius: 10px;
+        padding: 5px 10px;
+        font-family: Montserrat;
+        font-size: 12px;
+        color: #000000;
+        background-color: white;
+    }
+    QComboBox:focus {
+        border: 2px solid #6B5E46;
+    }
+    QComboBox QAbstractItemView {
+        color: #000000;
+        background-color: white;
+        selection-background-color: #D9CFC2;
+        selection-color: black;
+    }
+"""
+
+TABLE_STYLE = """
+    QTableWidget {
+        border: 1px solid #8B7E66;
+        gridline-color: #8B7E66;
+        background-color: white;
+        selection-background-color: #D9CFC2;
+        selection-color: black;
+    }
+    QHeaderView::section {
+        background-color: #9B8B7E;
+        padding: 8px;
+        font-weight: bold;
+        color: white;
+        font-family: Montserrat;
+        font-size: 12px;
+        border: none;
+    }
+    QHeaderView::section:hover {
+        background-color: #7A6D55;
+    }
+    QTableWidget::item:hover {
+        background-color: #D9CFC2;
+    }
+    QTableWidget::item:selected {
+        background-color: #C9B8A8;
+    }
+    QTableCornerButton::section {
+        background-color: #9B8B7E;
+        border: 1px solid #8B7E66;
+    }
+"""
+
+BUTTON_STYLE = """
+    QPushButton {
+        background-color: #8B7E66;
+        color: white;
+        border: none;
+        border-radius: 10px;
+    }
+    QPushButton:hover {
+        background-color: #6B5E46;
+    }
+"""
+
+# Table Configuration
+TABLE_COLUMNS = [
+    "Book ID", "Member ID", "Book Title", "Borrow Date",
+    "Due Date", "Return Date", "Status", "Fine Amount", "Updated At"
+]
+COLUMN_WIDTHS = [80, 90, 300, 180, 180, 180, 100, 120, 180]
+COLUMN_NAMES = [
+    'book_id', 'member_id', 'book_title', 'borrow_date',
+    'due_date', 'return_date', 'status', 'fine_amount', 'updated_at'
+]
+
 class CirculationManagement(QMainWindow):
     """Circulation Management screen"""
-    
+
     def __init__(self, db=None):
         super().__init__()
         self.db = db
@@ -287,6 +399,21 @@ class CirculationManagement(QMainWindow):
         action_layout.addWidget(back_btn)
         
         main_layout.addLayout(action_layout)
+
+    def _get_status_color(self, status):
+        """Get color for transaction status."""
+        color_map = {
+            'Borrowed': STATUS_BORROWED,
+            'Returned': STATUS_RETURNED,
+            'Overdue': STATUS_OVERDUE
+        }
+        return color_map.get(status, TEXT_BLACK)
+
+    def _format_return_date(self, return_date):
+        """Format return date, show blank if NULL."""
+        if return_date is None or str(return_date).strip().lower() in ('none', 'null', ''):
+            return ""
+        return str(return_date)
     
     def on_selection_changed(self):
         """Track selected borrow when selection changes"""

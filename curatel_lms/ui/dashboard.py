@@ -4,6 +4,7 @@
 Dashboard module.
 Main navigation hub for library management system.
 """
+
 import os
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel,

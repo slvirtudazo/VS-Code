@@ -1,16 +1,18 @@
 # curatel_lms/main.py
 
 """
-Main application entry point.
-Initializes the library management system with GUI and database.
+Application entry point.
+Initializes the library management system with GUI, database, and custom fonts.
 """
 
 import sys
 import os
+from typing import List
 
-# Add parent directory for imports
+# Configure import paths
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+# Verify required dependencies
 try:
     import mysql.connector
     print("[OK] MySQL connector available")
@@ -24,86 +26,102 @@ from PyQt6.QtGui import QFontDatabase
 from curatel_lms.ui.login_screen import LoginScreen
 from curatel_lms.database import Database
 
+# Application base directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-def load_fonts():
+# Font configuration
+REQUIRED_FONTS = [
+    "Montserrat-Regular.ttf",
+    "Montserrat-Bold.ttf",
+    "PlayfairDisplay-Regular.ttf",
+    "PlayfairDisplay-Bold.ttf"
+]
+
+def load_fonts() -> bool:
     """
     Load custom fonts from fonts directory.
-    Returns: True if all fonts loaded successfully.
+    
+    Returns:
+        bool: True if all fonts loaded successfully, False otherwise
     """
     fonts_dir = os.path.join(BASE_DIR, "fonts")
-    font_files = [
-        "Montserrat-Regular.ttf",
-        "Montserrat-Bold.ttf",
-        "PlayfairDisplay-Regular.ttf",
-        "PlayfairDisplay-Bold.ttf"
-    ]
-    
     all_loaded = True
-    for font_file in font_files:
+    
+    for font_file in REQUIRED_FONTS:
         font_path = os.path.join(fonts_dir, font_file)
         
+        # Check if font file exists
         if not os.path.exists(font_path):
-            print(f"[WARNING] Missing: {font_file}")
+            print(f"[WARNING] Font missing: {font_file}")
             all_loaded = False
             continue
         
+        # Load font into application
         if QFontDatabase.addApplicationFont(font_path) == -1:
-            print(f"[ERROR] Failed to load: {font_file}")
+            print(f"[ERROR] Failed to load font: {font_file}")
             all_loaded = False
         else:
-            print(f"[OK] Loaded: {font_file}")
+            print(f"[OK] Font loaded: {font_file}")
     
+    # Print summary
     if all_loaded:
-        print("✓ All fonts loaded")
+        print("✓ All fonts loaded successfully")
     else:
-        print("⚠ Some fonts missing, using system fonts")
+        print("⚠ Some fonts missing, using system defaults")
     
     return all_loaded
 
-def connect_database():
+def connect_database() -> Database:
     """
-    Connect to MySQL database.
-    Returns: Database object (connected or not).
+    Initialize and connect to MySQL database.
+    
+    Returns:
+        Database: Database instance (connected or not)
     """
     db = Database()
     
     if db.connect():
-        print(f"[OK] Connected to: {db.database}")
+        print(f"[OK] Database ready: {db.database}")
     else:
         print("[WARNING] Database connection failed")
         print("Check: MySQL server running, database exists, credentials correct")
     
     return db
 
-def main():
-    """Main application entry point."""
+def main() -> None:
+    """
+    Main application entry point.
+    Initializes Qt application, loads resources, and displays login screen.
+    """
     try:
         # Initialize Qt application
         app = QApplication(sys.argv)
         app.setApplicationName("Curatel Library Management System")
         app.setOrganizationName("Curatel")
         
-        # Load fonts
+        print("[INFO] Application initialized")
+        
+        # Load custom fonts
         load_fonts()
         
-        # Connect database
+        # Connect to database
         db = connect_database()
         
         if not db.connection:
-            print("[WARNING] Starting without database")
+            print("[WARNING] Starting without database connection")
         
-        # Show login window
-        print("[INFO] Starting login screen")
-        window = LoginScreen(db)
-        window.show()
-        print("[OK] Application started")
+        # Create and show login window
+        print("[INFO] Launching login screen")
+        login_window = LoginScreen(db)
+        login_window.show()
+        print("[OK] Application started successfully")
         
-        # Start event loop
+        # Start Qt event loop
         sys.exit(app.exec())
     
     except Exception as e:
-        print(f"[CRITICAL] {type(e).__name__}: {e}")
+        # Handle critical errors
+        print(f"[CRITICAL] Application error: {type(e).__name__}: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

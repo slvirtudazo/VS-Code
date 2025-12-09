@@ -1,10 +1,98 @@
-# ui/library_reports.py - Updated to show real-time Overdue Books and Total Fines WITH SORTING
+# curatel_lms/ui/library_reports.py
+
+"""
+Library reports module.
+Displays statistics, trends, and analytics for the library.
+"""
 
 from PyQt6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
                              QPushButton, QTableWidget, QTableWidgetItem, QHeaderView)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QColor
-from datetime import datetime
+
+# UI Constants
+BUTTON_HEIGHT = 40
+CARD_PADDING = 15
+TABLE_HEIGHT = 400
+TABLE_WIDTH = 685
+
+# Style Constants
+TABLE_STYLE = """
+    QTableWidget {
+        border: 1px solid #8B7E66;
+        gridline-color: #8B7E66;
+        background-color: white;
+        selection-background-color: #D9CFC2;
+        selection-color: black;
+    }
+    QHeaderView::section {
+        background-color: #9B8B7E;
+        padding: 8px;
+        font-weight: bold;
+        color: white;
+        font-family: Montserrat;
+        font-size: 12px;
+        border: none;
+    }
+    QHeaderView::section:hover {
+        background-color: #7A6D55;
+    }
+    QTableWidget::item:hover {
+        background-color: #D9CFC2;
+    }
+    QTableWidget::item:selected {
+        background-color: #C9B8A8;
+    }
+    QTableCornerButton::section {
+        background-color: #9B8B7E;
+        border: 1px solid #8B7E66;
+    }
+"""
+
+BUTTON_STYLE = """
+    QPushButton {
+        background-color: #8B7E66;
+        color: white;
+        border: none;
+        border-radius: 10px;
+    }
+    QPushButton:hover {
+        background-color: #6B5E46;
+    }
+"""
+
+# SQL Query Constants
+QUERY_TOTAL_MEMBERS = "SELECT COUNT(*) as total FROM members"
+QUERY_ACTIVE_MEMBERS = "SELECT COUNT(*) as active FROM members WHERE status = 'Active'"
+QUERY_INACTIVE_MEMBERS = "SELECT COUNT(*) as inactive FROM members WHERE status = 'Inactive'"
+QUERY_BORROWED_BOOKS = "SELECT COUNT(*) as borrowed FROM borrowed_books WHERE status = 'Borrowed'"
+QUERY_OVERDUE_BOOKS = "SELECT COUNT(*) as overdue FROM borrowed_books WHERE status = 'Overdue'"
+QUERY_TOTAL_FINES = "SELECT SUM(fine_amount) as total_fines FROM borrowed_books WHERE fine_amount > 0"
+
+QUERY_TOP_BORROWERS = """
+    SELECT 
+        m.member_id,
+        m.full_name,
+        COUNT(bb.borrow_id) as books_borrowed,
+        SUM(bb.fine_amount) as total_fines
+    FROM members m
+    LEFT JOIN borrowed_books bb ON m.member_id = bb.member_id
+    GROUP BY m.member_id, m.full_name
+    HAVING books_borrowed > 0
+    ORDER BY books_borrowed DESC, total_fines DESC
+"""
+
+QUERY_POPULAR_BOOKS = """
+    SELECT 
+        b.book_id,
+        b.title,
+        COUNT(bb.borrow_id) as times_borrowed
+    FROM books b
+    LEFT JOIN borrowed_books bb ON b.book_id = bb.book_id
+    GROUP BY b.book_id, b.title
+    HAVING times_borrowed > 0
+    ORDER BY times_borrowed DESC
+"""
 
 class ReportsAnalytics(QMainWindow):
     """Library Reports screen - displays dynamic data from database with real-time overdue and fines"""
@@ -130,6 +218,37 @@ class ReportsAnalytics(QMainWindow):
 
         main_layout.addLayout(tables_layout)
         main_layout.addStretch()
+
+    def _fetch_count(self, query):
+        """
+        Fetch count from query result.
+        Args:
+            query: SQL query string
+        Returns: Count value or 0
+        """
+        result = self.db.fetch_one(query)
+        if result:
+            key = list(result.keys())[0]
+            return result.get(key, 0)
+        return 0
+
+    def _calculate_statistics(self):
+        """Calculate all library statistics."""
+        self.stats = {
+            'total_members': self._fetch_count(QUERY_TOTAL_MEMBERS),
+            'active_members': self._fetch_count(QUERY_ACTIVE_MEMBERS),
+            'inactive_members': self._fetch_count(QUERY_INACTIVE_MEMBERS),
+            'currently_borrowed': self._fetch_count(QUERY_BORROWED_BOOKS),
+            'overdue_books': self._fetch_count(QUERY_OVERDUE_BOOKS),
+            'total_fines': self._fetch_total_fines()
+        }
+
+    def _fetch_total_fines(self):
+        """Fetch total fines amount."""
+        result = self.db.fetch_one(QUERY_TOTAL_FINES)
+        if result and result['total_fines']:
+            return float(result['total_fines'])
+        return 0.0
 
     
     def create_stat_card(self, title, value):
