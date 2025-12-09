@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                               QHBoxLayout, QLabel, QLineEdit, QPushButton, 
                               QTextEdit, QTabWidget, QMessageBox, QFileDialog)
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont, QFontDatabase
+from PyQt6.QtGui import QFont
 
 class PasswordPatternSystem:
     """Handles password generation and binary pattern analysis with discrete math"""
