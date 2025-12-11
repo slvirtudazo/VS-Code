@@ -13,66 +13,102 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QPixmap
 
+from curatel_lms.config import AppConfig
+
+
 class Dashboard(QMainWindow):
-    """Main dashboard with navigation to all modules."""
+    """Main dashboard with navigation to all management modules."""
+    
+    # Navigation card configuration
+    CARDS = [
+        {
+            'title': 'Catalog Management',
+            'subtitle': 'Inventory & Maintenance',
+            'image': 'catalog_logo.png',
+            'handler': '_open_catalog_management'
+        },
+        {
+            'title': 'Circulation Management',
+            'subtitle': 'Transactions & Tracking',
+            'image': 'circulation_logo.png',
+            'handler': '_open_circulation_management'
+        },
+        {
+            'title': 'Patron Management',
+            'subtitle': 'Profiles & Status',
+            'image': 'patron_logo.png',
+            'handler': '_open_patron_management'
+        },
+        {
+            'title': 'Library Reports',
+            'subtitle': 'Activity Overview & Patterns',
+            'image': 'reports_logo.png',
+            'handler': '_open_reports_analytics'
+        }
+    ]
     
     def __init__(self, db=None):
+        """
+        Initialize dashboard.
+        Args:
+            db: Database connection object
+        """
         super().__init__()
         self.db = db
         self.closing_without_prompt = False
-        self.setWindowTitle("Curatel - Dashboard")
-        self.setup_ui()
-        self.show_fullscreen()
+        self.base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        
+        self.setWindowTitle(AppConfig.WINDOW_TITLE)
+        self._setup_ui()
+        self._show_fullscreen()
     
-    def setup_ui(self):
-        """Configure dashboard layout."""
+    def _setup_ui(self):
+        """Configure dashboard layout with header and navigation cards."""
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
-        central_widget.setStyleSheet("background-color: #FFFFFF;")
+        central_widget.setStyleSheet(f"background-color: {AppConfig.COLORS['bg_white']};")
         
         main_layout = QVBoxLayout(central_widget)
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
         
         # Header section
-        header_widget = self._create_header()
-        main_layout.addWidget(header_widget)
-
+        main_layout.addWidget(self._create_header())
+        
         # Divider line
-        line = QFrame()
-        line.setFrameShape(QFrame.Shape.HLine)
-        line.setFrameShadow(QFrame.Shadow.Plain)
-        line.setStyleSheet("color: #6B5E46; background-color: #8B7E66;")
-        line.setFixedHeight(2)
         main_layout.addSpacing(5)
-        main_layout.addWidget(line)
-
+        main_layout.addWidget(self._create_divider())
+        
         # Content area with navigation cards
-        content_widget = self._create_content()
-        main_layout.addWidget(content_widget)
+        main_layout.addWidget(self._create_content())
     
     def _create_header(self):
-        """Create header with title and logout button."""
+        """
+        Create header with title and logout button.
+        Returns: QWidget containing header
+        """
         header_widget = QWidget()
-        header_widget.setStyleSheet("background-color: #FFFFFF;")
+        header_widget.setStyleSheet(f"background-color: {AppConfig.COLORS['bg_white']};")
         header_widget.setFixedHeight(100)
+        
         header_layout = QHBoxLayout(header_widget)
         header_layout.setContentsMargins(50, 20, 50, 20)
         
         # Title section
         title_layout = QVBoxLayout()
+        title_layout.setSpacing(10)
+        title_layout.setContentsMargins(0, 0, 0, 0)
+        
         title = QLabel("Curatel")
         title.setFont(QFont("Montserrat", 25, QFont.Weight.Bold))
-        title.setStyleSheet("color: #000000; border: none;")
+        title.setStyleSheet(f"color: {AppConfig.COLORS['text_dark']}; border: none;")
         title_layout.addWidget(title)
         
         subtitle = QLabel("Dashboard Panel")
         subtitle.setFont(QFont("Montserrat", 11))
-        subtitle.setStyleSheet("color: #333333; border: none;")
+        subtitle.setStyleSheet(f"color: {AppConfig.COLORS['text_gray']}; border: none;")
         title_layout.addWidget(subtitle)
         
-        title_layout.setSpacing(10)
-        title_layout.setContentsMargins(0, 0, 0, 0)
         header_layout.addLayout(title_layout)
         header_layout.addStretch()
         
@@ -80,70 +116,83 @@ class Dashboard(QMainWindow):
         logout_btn = QPushButton("Logout")
         logout_btn.setFont(QFont("Montserrat", 11, QFont.Weight.Bold))
         logout_btn.setFixedSize(140, 50)
-        logout_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #8B7E66;
+        logout_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {AppConfig.COLORS['primary_light']};
                 color: white;
                 border: none;
                 border-radius: 10px;
-            }
-            QPushButton:hover { background-color: #6B5E46; }
+            }}
+            QPushButton:hover {{ background-color: {AppConfig.COLORS['button_gray_hover']}; }}
         """)
         logout_btn.clicked.connect(self._logout)
         header_layout.addWidget(logout_btn)
         
         return header_widget
 
+    def _create_divider(self):
+        """
+        Create horizontal divider line.
+        Returns: QFrame configured as divider
+        """
+        line = QFrame()
+        line.setFrameShape(QFrame.Shape.HLine)
+        line.setFrameShadow(QFrame.Shadow.Plain)
+        line.setStyleSheet(
+            f"color: {AppConfig.COLORS['border_dark']}; "
+            f"background-color: {AppConfig.COLORS['border_color']};"
+        )
+        line.setFixedHeight(2)
+        return line
+
     def _create_content(self):
-        """Create content area with navigation cards."""
+        """
+        Create content area with navigation cards.
+        Returns: QWidget containing navigation cards
+        """
         content_widget = QWidget()
-        content_widget.setStyleSheet("background-color: #FFFFFF;")
+        content_widget.setStyleSheet(f"background-color: {AppConfig.COLORS['bg_white']};")
+        
         content_layout = QVBoxLayout(content_widget)
         content_layout.setContentsMargins(60, 90, 60, 90)
         
-        # Get asset paths
-        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        img_catalog = os.path.join(base_dir, "assets", "catalog_logo.png")
-        img_circulation = os.path.join(base_dir, "assets", "circulation_logo.png")
-        img_patron = os.path.join(base_dir, "assets", "patron_logo.png")
-        img_reports = os.path.join(base_dir, "assets", "reports_logo.png")
-        
-        # First row of cards
-        row1_layout = QHBoxLayout()
-        row1_layout.setContentsMargins(0, 30, 0, 0)
-        
-        catalog_btn = self._create_menu_card("Catalog Management", "Inventory & Maintenance", img_catalog)
-        catalog_btn.clicked.connect(self._open_catalog_management)
-        row1_layout.addStretch()
-        row1_layout.addWidget(catalog_btn)
-        row1_layout.addSpacing(70)
-        
-        circulation_btn = self._create_menu_card("Circulation Management", "Transactions & Tracking", img_circulation)
-        circulation_btn.clicked.connect(self._open_circulation_management)
-        row1_layout.addWidget(circulation_btn)
-        row1_layout.addStretch()
-
-        content_layout.addLayout(row1_layout)
-        
-        # Second row of cards
-        row2_layout = QHBoxLayout()
-        row2_layout.setContentsMargins(0, 70, 0, 0)
-        
-        patron_btn = self._create_menu_card("Patron Management", "Profiles & Status", img_patron)
-        patron_btn.clicked.connect(self._open_patron_management)
-        row2_layout.addStretch()
-        row2_layout.addWidget(patron_btn)
-        row2_layout.addSpacing(70)
-        
-        reports_btn = self._create_menu_card("Library Reports", "Activity Overview & Patterns", img_reports)
-        reports_btn.clicked.connect(self._open_reports_analytics)
-        row2_layout.addWidget(reports_btn)
-        row2_layout.addStretch()
-        
-        content_layout.addLayout(row2_layout)
+        # Create two rows of navigation cards
+        content_layout.addLayout(self._create_card_row(0, 2))
+        content_layout.addSpacing(70)
+        content_layout.addLayout(self._create_card_row(2, 4))
         content_layout.addStretch()
         
         return content_widget
+    
+    def _create_card_row(self, start_idx, end_idx):
+        """
+        Create row of navigation cards.
+        Args:
+            start_idx: Starting index in CARDS list
+            end_idx: Ending index in CARDS list
+        Returns: QHBoxLayout containing card buttons
+        """
+        row_layout = QHBoxLayout()
+        row_layout.setContentsMargins(0, 30, 0, 0)
+        row_layout.addStretch()
+        
+        for i in range(start_idx, end_idx):
+            if i > start_idx:
+                row_layout.addSpacing(70)
+            
+            card_config = self.CARDS[i]
+            image_path = os.path.join(self.base_dir, "assets", card_config['image'])
+            card_btn = self._create_menu_card(
+                card_config['title'],
+                card_config['subtitle'],
+                image_path
+            )
+            # Connect to handler method
+            card_btn.clicked.connect(getattr(self, card_config['handler']))
+            row_layout.addWidget(card_btn)
+        
+        row_layout.addStretch()
+        return row_layout
     
     def _create_menu_card(self, title, subtitle, image_path=None):
         """
@@ -157,19 +206,19 @@ class Dashboard(QMainWindow):
         btn = QPushButton()
         btn.setFixedSize(540, 200)
         btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        btn.setStyleSheet("""
-            QPushButton {
+        btn.setStyleSheet(f"""
+            QPushButton {{
                 background-color: transparent;
-                border: 1.5px solid #8B7E66;
+                border: 1.5px solid {AppConfig.COLORS['border_color']};
                 border-radius: 20px;
                 text-align: left;
                 padding: 0px;
-                color: #000000;
-            }
-            QPushButton:hover {
+                color: {AppConfig.COLORS['text_dark']};
+            }}
+            QPushButton:hover {{
                 background-color: rgba(201, 184, 168, 0.3);
-                border: 1.5px solid #6B5E46;
-            }
+                border: 1.5px solid {AppConfig.COLORS['border_dark']};
+            }}
         """)
 
         layout = QHBoxLayout(btn)
@@ -181,7 +230,9 @@ class Dashboard(QMainWindow):
         icon_label.setStyleSheet("background-color: transparent;")
         if image_path and os.path.exists(image_path):
             pixmap = QPixmap(image_path).scaled(
-                80, 80, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation
+                80, 80, 
+                Qt.AspectRatioMode.KeepAspectRatio, 
+                Qt.TransformationMode.SmoothTransformation
             )
             icon_label.setPixmap(pixmap)
         layout.addWidget(icon_label, alignment=Qt.AlignmentFlag.AlignVCenter)
@@ -193,12 +244,16 @@ class Dashboard(QMainWindow):
 
         title_label = QLabel(title)
         title_label.setFont(QFont("Montserrat", 18, QFont.Weight.Bold))
-        title_label.setStyleSheet("color: #000000; background-color: transparent;")
+        title_label.setStyleSheet(
+            f"color: {AppConfig.COLORS['text_dark']}; background-color: transparent;"
+        )
         text_layout.addWidget(title_label)
 
         subtitle_label = QLabel(subtitle)
         subtitle_label.setFont(QFont("Montserrat", 13))
-        subtitle_label.setStyleSheet("color: #333333; background-color: transparent;")
+        subtitle_label.setStyleSheet(
+            f"color: {AppConfig.COLORS['text_gray']}; background-color: transparent;"
+        )
         text_layout.addWidget(subtitle_label)
 
         text_layout.addStretch()
@@ -266,13 +321,17 @@ class Dashboard(QMainWindow):
                 print(f"[ERROR] Logout failed: {e}")
                 QMessageBox.critical(self, "Error", "Logout failed")
     
-    def show_fullscreen(self):
+    def _show_fullscreen(self):
         """Set window to maximized state."""
         self.setWindowState(Qt.WindowState.WindowMaximized)
         self.showMaximized()
     
     def closeEvent(self, event):
-        """Handle window close with confirmation."""
+        """
+        Handle window close with confirmation.
+        Args:
+            event: Close event
+        """
         if self.closing_without_prompt:
             event.accept()
             return
