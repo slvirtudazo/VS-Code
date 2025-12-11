@@ -9,15 +9,16 @@ def student_info():
         file.write(f'Course: {course}\n')
 
     print("\nStudent information added successfully to 'students.txt'")
+
     print("\n--- Student Information ---")
     with open('students.txt', 'r') as file:
         print(file.read())
 
+    with open('students.txt', 'a') as file:
+        file.write('\nThank you!\n')
+
     print('--- Updated Student Information ---')
     with open('students.txt', 'r') as file:
         print(file.read())
-        
-    with open('students.txt', 'a') as file:
-        file.write('\nThank you!')
 
 student_info()
