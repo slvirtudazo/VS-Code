@@ -1,9 +1,5 @@
 # curatel_lms/ui/login_screen.py
-
-"""
-Login screen module.
-Provides authentication interface with password reset functionality.
-"""
+# Login screen with auth and password reset
 
 import os
 import re
@@ -16,7 +12,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QColor, QIcon, QCursor
 
 class ResetPasswordDialog(QDialog):
-    """Dialog for password reset functionality."""
+    # Password reset dialog
     
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -27,11 +23,11 @@ class ResetPasswordDialog(QDialog):
         self._center_window()
 
     def setup_ui(self):
-        """Configure dialog layout and widgets."""
+        # Build reset dialog UI
         layout = QVBoxLayout(self)
         layout.setContentsMargins(40, 30, 40, 40)
     
-        # Instructions label
+        # Instructions
         subtitle = QLabel(
             "Enter your registered email address to\n"
             "receive password reset instructions"
@@ -42,13 +38,14 @@ class ResetPasswordDialog(QDialog):
         layout.addWidget(subtitle)
         layout.addSpacing(50)
 
-        # Email input section
+        # Email label
         email_label = QLabel("Email Address")
         email_label.setFont(QFont("Montserrat", 12, QFont.Weight.Normal))
         email_label.setStyleSheet("color: #FFFFFF;")
         layout.addWidget(email_label)
         layout.addSpacing(5)
 
+        # Email input
         self.email_input = QLineEdit()
         self.email_input.setFixedHeight(50)
         self.email_input.setStyleSheet("""
@@ -67,7 +64,7 @@ class ResetPasswordDialog(QDialog):
         layout.addWidget(self.email_input)
         layout.addSpacing(50)
 
-        # Action buttons
+        # Buttons
         btn_layout = QHBoxLayout()
         btn_layout.addStretch()
 
@@ -108,7 +105,7 @@ class ResetPasswordDialog(QDialog):
         layout.addStretch()
 
     def _send_reset(self):
-        """Validate email and simulate sending reset instructions."""
+        # Validate and send reset email
         email = self.email_input.text().strip()
 
         if not email:
@@ -124,7 +121,7 @@ class ResetPasswordDialog(QDialog):
         self.close()
 
     def _center_window(self):
-        """Center dialog on screen."""
+        # Center dialog on screen
         screen = self.screen().geometry()
         self.move(
             (screen.width() - self.width()) // 2,
@@ -132,15 +129,15 @@ class ResetPasswordDialog(QDialog):
         )
 
 class LoginScreen(QMainWindow):
-    """Main login window with authentication."""
-
+    # Main login window
+    
     def __init__(self, db=None):
         super().__init__()
         self.db = db
         self.closing_without_prompt = False
         self.password_visible = False
         
-        # Load icon assets
+        # Load icons
         self.base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.icon_open = QIcon(os.path.join(self.base_dir, "assets", "eye_open.png"))
         self.icon_closed = QIcon(os.path.join(self.base_dir, "assets", "eye_closed.png"))
@@ -149,13 +146,13 @@ class LoginScreen(QMainWindow):
         self.show_fullscreen()
 
     def setup_ui(self):
-        """Configure main window structure."""
+        # Build main window
         self.setWindowTitle("Curatel - Library Management System")
 
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
 
-        # Set background image
+        # Set background
         bg_path = os.path.join(self.base_dir, "assets", "curatel_bg.png")
 
         if os.path.exists(bg_path):
@@ -180,7 +177,7 @@ class LoginScreen(QMainWindow):
         self._create_login_form(main_layout)
 
     def _create_login_form(self, parent_layout):
-        """Create login form container with inputs and buttons."""
+        # Create login form
         form_container = QWidget()
         form_container.setFixedSize(500, 550)
         form_container.setStyleSheet("""
@@ -189,7 +186,7 @@ class LoginScreen(QMainWindow):
             border-radius: 50px;
         """)
 
-        # Add drop shadow effect
+        # Add shadow
         shadow = QGraphicsDropShadowEffect()
         shadow.setBlurRadius(100)
         shadow.setColor(QColor(0, 0, 0, 200))
@@ -201,7 +198,7 @@ class LoginScreen(QMainWindow):
         form_layout.setContentsMargins(50, 30, 50, 50)
         form_layout.addSpacing(20)
 
-        # Welcome message
+        # Welcome text
         welcome_msg = QLabel("Welcome, Sam!\nSign in to manage book collections")
         welcome_msg.setFont(QFont("Montserrat", 15, QFont.Weight.Bold))
         welcome_msg.setStyleSheet("color: white; background: transparent; border: none;")
@@ -210,12 +207,13 @@ class LoginScreen(QMainWindow):
         form_layout.addWidget(welcome_msg)
         form_layout.addSpacing(30)
 
-        # Username input
+        # Username label
         username_label = QLabel("Username")
         username_label.setFont(QFont("Montserrat", 11, QFont.Weight.Normal))
         username_label.setStyleSheet("color: white; background: transparent; border: none;")
         form_layout.addWidget(username_label)
 
+        # Username input
         self.username_input = QLineEdit()
         self.username_input.setPlaceholderText("Enter your username")
         self.username_input.setFixedHeight(50)
@@ -234,14 +232,14 @@ class LoginScreen(QMainWindow):
         form_layout.addSpacing(-20)
         form_layout.addWidget(self.username_input)
 
-        # Password input
+        # Password label
         password_label = QLabel("Password")
         password_label.setFont(QFont("Montserrat", 11, QFont.Weight.Normal))
         password_label.setStyleSheet("color: #FFFFFF; background: transparent; border: none;")
         form_layout.addWidget(password_label)
         form_layout.addSpacing(-10)
 
-        # Password container for eye icon overlay
+        # Password field with eye icon
         password_container = QWidget()
         password_container.setStyleSheet("background: transparent; border: none;")
         container_layout = QVBoxLayout(password_container)
@@ -268,7 +266,7 @@ class LoginScreen(QMainWindow):
         self.password_input.returnPressed.connect(self._handle_login)
         container_layout.addWidget(self.password_input)
 
-        # Eye icon toggle button
+        # Eye toggle
         self.toggle_password_btn = QPushButton(self.password_input)
         self.toggle_password_btn.setFixedSize(20, 25)
         self.toggle_password_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
@@ -308,7 +306,7 @@ class LoginScreen(QMainWindow):
 
         form_layout.addSpacing(-15)
 
-        # Forgot Password button
+        # Forgot password link
         forgot_btn = QPushButton("Forgot Password?")
         forgot_btn.setFont(QFont("Montserrat", 11, QFont.Weight.Bold))
         forgot_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
@@ -327,7 +325,7 @@ class LoginScreen(QMainWindow):
         parent_layout.addWidget(form_container, alignment=Qt.AlignmentFlag.AlignCenter)
 
     def _position_eye_icon(self):
-        """Position eye icon button inside password input field."""
+        # Position eye icon inside password field
         if not hasattr(self, 'password_input') or not hasattr(self, 'toggle_password_btn'):
             return
 
@@ -342,12 +340,12 @@ class LoginScreen(QMainWindow):
         self.toggle_password_btn.raise_()
         
     def resizeEvent(self, event):
-        """Reposition icon on window resize."""
+        # Reposition icon on resize
         super().resizeEvent(event)
         self._position_eye_icon()
 
     def _toggle_password_visibility(self):
-        """Toggle password visibility and update icon."""
+        # Toggle password visibility
         if self.password_visible:
             self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
             self.toggle_password_btn.setIcon(self.icon_closed)
@@ -358,7 +356,7 @@ class LoginScreen(QMainWindow):
             self.password_visible = True
 
     def _handle_login(self):
-        """Validate credentials and authenticate user."""
+        # Check login credentials
         username = self.username_input.text().strip()
         password = self.password_input.text().strip()
 
@@ -366,7 +364,7 @@ class LoginScreen(QMainWindow):
             QMessageBox.warning(self, "Error", "Please enter both username and password.")
             return
 
-        # Authenticate (hardcoded for demo)
+        # Demo auth
         if username == "slav" and password == "554893":
             QMessageBox.information(self, "Success", f"Welcome, {username}!")
             self._show_dashboard()
@@ -374,11 +372,11 @@ class LoginScreen(QMainWindow):
             QMessageBox.critical(self, "Error", "Invalid username or password.")
 
     def _show_reset_password(self):
-        """Open password reset dialog."""
+        # Open reset dialog
         ResetPasswordDialog(self).exec()
 
     def _show_dashboard(self):
-        """Load and display dashboard."""
+        # Open dashboard
         try:
             from curatel_lms.ui.dashboard import Dashboard
             self.dashboard = Dashboard(self.db)
@@ -390,12 +388,12 @@ class LoginScreen(QMainWindow):
             print(f"[ERROR] Dashboard error: {e}")
 
     def show_fullscreen(self):
-        """Set window to maximized state."""
+        # Maximize window
         self.setWindowState(Qt.WindowState.WindowMaximized)
         self.showMaximized()
 
     def closeEvent(self, event):
-        """Handle window close with confirmation."""
+        # Confirm exit
         if self.closing_without_prompt:
             event.accept()
             return

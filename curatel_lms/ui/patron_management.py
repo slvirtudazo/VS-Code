@@ -1,9 +1,6 @@
 # curatel_lms/ui/patron_management.py
-
-"""
-Patron management module.
-Main window for managing library member records.
-"""
+# Patron Management Module - Main Window: manages library member records with search, filtering, CRUD, sortable table, modal dialogs, and status indicators.
+# OOP: QMainWindow subclass with db composition, encapsulated logic, private methods, and single-responsibility design.
 
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
@@ -13,133 +10,25 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QColor
 
+from curatel_lms.config import AppConfig
 from curatel_lms.ui.patron_dialogs import (
-    AddMemberDialog, ViewMemberDialog, UpdateMemberDialog, ConfirmDeleteMemberDialog
+    AddMemberDialog, ViewMemberDialog, UpdateMemberDialog, 
+    ConfirmDeleteMemberDialog
 )
-
-# UI Constants
-BUTTON_WIDTH_STANDARD = 120
-BUTTON_WIDTH_WIDE = 130
-BUTTON_HEIGHT = 40
-SEARCH_HEIGHT = 40
-
-# Color Constants
-STATUS_ACTIVE = "#228C3A"
-STATUS_INACTIVE = "#DC3545"
-TEXT_BLACK = "#000000"
-
-# Style Constants
-SEARCH_INPUT_STYLE = """
-    QLineEdit {
-        border: 2px solid #8B7E66;
-        border-radius: 10px;
-        padding: 8px 10px;
-        font-family: Montserrat;
-        font-size: 11px;
-        color: black;
-        background-color: white;
-    }
-    QLineEdit:focus {
-        border: 2px solid #6B5E46;
-    }
-    QLineEdit::placeholder {
-        color: gray;
-    }
-"""
-
-COMBO_STYLE = """
-    QComboBox {
-        border: 2px solid #8B7E66;
-        border-radius: 10px;
-        padding: 5px 10px;
-        font-family: Montserrat;
-        font-size: 12px;
-        color: #000000;
-        background-color: white;
-    }
-    QComboBox:focus {
-        border: 2px solid #6B5E46;
-    }
-    QComboBox QAbstractItemView {
-        color: #000000;
-        background-color: white;
-        selection-background-color: #D9CFC2;
-        selection-color: black;
-    }
-"""
-
-TABLE_STYLE = """
-    QTableWidget {
-        border: 1px solid #8B7E66;
-        gridline-color: #8B7E66;
-        background-color: white;
-        selection-background-color: #D9CFC2;
-        selection-color: black;
-    }
-    QHeaderView::section {
-        background-color: #9B8B7E;
-        padding: 8px;
-        font-weight: bold;
-        color: white;
-        font-family: Montserrat;
-        font-size: 12px;
-        border: none;
-    }
-    QHeaderView::section:hover {
-        background-color: #7A6D55;
-    }
-    QTableWidget::item:hover {
-        background-color: #D9CFC2;
-    }
-    QTableWidget::item:selected {
-        background-color: #C9B8A8;
-    }
-    QTableCornerButton::section {
-        background-color: #9B8B7E;
-        border: 1px solid #8B7E66;
-    }
-"""
-
-BUTTON_STYLE = """
-    QPushButton {
-        background-color: #8B7E66;
-        color: white;
-        border: none;
-        border-radius: 10px;
-    }
-    QPushButton:hover {
-        background-color: #6B5E46;
-    }
-"""
-
-# Table Configuration
-TABLE_COLUMNS = [
-    "Member ID", "Full Name", "Email", "Mobile Number",
-    "Status", "Borrowed Books", "Added At", "Updated At"
-]
-COLUMN_WIDTHS = [100, 200, 250, 180, 100, 140, 200, 200]
-COLUMN_NAMES = [
-    'member_id', 'full_name', 'email', 'mobile_number',
-    'status', 'borrowed_books', 'added_at', 'updated_at'
-]
 
 
 class PatronManagement(QMainWindow):
-    """Main window for patron management operations."""
+    # Main window for managing library members: displays sortable/filterable table, supports CRUD via modal dialogs, tracks selection, and uses db for data.
     
     def __init__(self, db=None):
-        """
-        Initialize patron management window.
-        Args:
-            db: Database connection object
-        """
+        # Initialize UI, load members, maximize window; handles errors with alerts and logs.
         super().__init__()
+        
         self.db = db
         self.all_members = []
         self.selected_member_id = None
         self.sort_column = None
         self.sort_order = Qt.SortOrder.AscendingOrder
-        
         self.setWindowTitle("Curatel - Patron Management")
         
         try:
@@ -151,22 +40,22 @@ class PatronManagement(QMainWindow):
             import traceback
             traceback.print_exc()
             QMessageBox.critical(
-                self, "Error",
+                self, "Initialization Error",
                 f"Failed to initialize Patron Management:\n{str(e)}"
             )
     
     def _setup_ui(self):
-        """Configure main window UI."""
+        # Build full UI: header, search, table, buttons; enables click-to-clear selection and applies consistent styling.
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         central_widget.mousePressEvent = self._clear_selection
-        central_widget.setStyleSheet("background-color: white;")
+        central_widget.setStyleSheet(
+            f"background-color: {AppConfig.COLORS['bg_white']};"
+        )
         
         main_layout = QVBoxLayout(central_widget)
         main_layout.setContentsMargins(40, 20, 40, 30)
         main_layout.setSpacing(-5)
-        
-        # Add UI sections
         main_layout.addLayout(self._create_header())
         main_layout.addLayout(self._create_search_section())
         main_layout.addSpacing(5)
@@ -175,97 +64,85 @@ class PatronManagement(QMainWindow):
         main_layout.addLayout(self._create_action_buttons())
     
     def _create_header(self):
-        """
-        Create header section with title and subtitle.
-        Returns: QHBoxLayout containing header
-        """
+        # Return header layout with title and subtitle, left-aligned.
         header_layout = QHBoxLayout()
         header_text = QVBoxLayout()
 
         title = QLabel("Patron Management")
         title.setFont(QFont("Montserrat", 20, QFont.Weight.Bold))
-        title.setStyleSheet("color: #000000;")
+        title.setStyleSheet(f"color: {AppConfig.COLORS['text_dark']};")
         header_text.addWidget(title)
 
         subtitle = QLabel("Manage member records, status, and registration details")
         subtitle.setFont(QFont("Montserrat", 11))
-        subtitle.setStyleSheet("color: #333333;")
+        subtitle.setStyleSheet(f"color: {AppConfig.COLORS['text_gray']};")
         header_text.addWidget(subtitle)
         header_text.addSpacing(15)
 
         header_layout.addLayout(header_text)
         header_layout.addStretch()
-        
         return header_layout
     
     def _create_search_section(self):
-        """
-        Create search and filter section.
-        Returns: QHBoxLayout containing search controls
-        """
+        # Return layout with search input and status filter, connected to real-time filtering.
         search_layout = QHBoxLayout()
         
-        # Search input
         self.search_input = QLineEdit()
-        self.search_input.setPlaceholderText("Search by id, name, email, or mobile number")
-        self.search_input.setStyleSheet(SEARCH_INPUT_STYLE)
-        self.search_input.setFixedHeight(SEARCH_HEIGHT)
+        self.search_input.setPlaceholderText(
+            "Search by id, name, email, or mobile number"
+        )
+        self.search_input.setStyleSheet(AppConfig.STYLES['search_input'])
+        self.search_input.setFixedHeight(AppConfig.SEARCH_HEIGHT)
         self.search_input.textChanged.connect(self._filter_members)
         search_layout.addWidget(self.search_input)
         search_layout.addSpacing(50)
         
-        # Status filter
-        search_layout.addWidget(self._create_label("Status"))
-        self.status_combo = self._create_combo(["All", "Active", "Inactive"])
+        search_layout.addWidget(self._create_filter_label("Status"))
+        self.status_combo = self._create_filter_combo(
+            ["All", "Active", "Inactive"]
+        )
         search_layout.addWidget(self.status_combo)
         search_layout.addStretch()
-        
         return search_layout
     
-    def _create_label(self, text):
-        """
-        Create filter label.
-        Args:
-            text: Label text
-        Returns: QLabel
-        """
+    def _create_filter_label(self, text):
+        # Return styled label for filter controls.
         label = QLabel(text)
         label.setFont(QFont("Montserrat", 10))
-        label.setStyleSheet("color: #000000;")
+        label.setStyleSheet(f"color: {AppConfig.COLORS['text_dark']};")
         return label
     
-    def _create_combo(self, items):
-        """
-        Create combo box with items.
-        Args:
-            items: List of items for combo box
-        Returns: QComboBox
-        """
+    def _create_filter_combo(self, items):
+        # Return styled, connected combo box for filtering.
         combo = QComboBox()
         combo.addItems(items)
-        combo.setStyleSheet(COMBO_STYLE)
-        combo.setFixedSize(120, SEARCH_HEIGHT)
+        combo.setStyleSheet(AppConfig.STYLES['combo'])
+        combo.setFixedSize(120, AppConfig.SEARCH_HEIGHT)
         combo.currentTextChanged.connect(self._filter_members)
         return combo
     
     def _create_members_table(self):
-        """
-        Create members table widget.
-        Returns: QTableWidget configured for members
-        """
+        # Return fully configured, non-editable, sortable, scrollable table with row selection and status coloring.
         self.members_table = QTableWidget()
-        self.members_table.setColumnCount(len(TABLE_COLUMNS))
+        self.members_table.setColumnCount(
+            len(AppConfig.PATRON_TABLE['columns'])
+        )
         self.members_table.setSortingEnabled(False)
-        self.members_table.setHorizontalHeaderLabels(TABLE_COLUMNS)
-        
-        # Configure table behavior
-        self.members_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
-        self.members_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
-        self.members_table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        self.members_table.setHorizontalHeaderLabels(
+            AppConfig.PATRON_TABLE['columns']
+        )
+        self.members_table.setEditTriggers(
+            QAbstractItemView.EditTrigger.NoEditTriggers
+        )
+        self.members_table.setSelectionBehavior(
+            QAbstractItemView.SelectionBehavior.SelectRows
+        )
+        self.members_table.setSelectionMode(
+            QAbstractItemView.SelectionMode.SingleSelection
+        )
         self.members_table.setAlternatingRowColors(True)
-        self.members_table.setStyleSheet(TABLE_STYLE)
+        self.members_table.setStyleSheet(AppConfig.STYLES['table_with_corner'])
         
-        # Configure header
         header = self.members_table.horizontalHeader()
         header.setSectionResizeMode(QHeaderView.ResizeMode.Interactive)
         header.setSectionsClickable(True)
@@ -274,100 +151,94 @@ class PatronManagement(QMainWindow):
         header.setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
         header.sectionClicked.connect(self._handle_header_click)
         
-        # Set column widths
-        for col, width in enumerate(COLUMN_WIDTHS):
+        for col, width in enumerate(AppConfig.PATRON_TABLE['widths']):
             self.members_table.setColumnWidth(col, width)
         
-        # Configure scrolling
-        self.members_table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Fixed)
+        self.members_table.verticalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.Fixed
+        )
         self.members_table.verticalHeader().setVisible(False)
-        self.members_table.setHorizontalScrollMode(QTableWidget.ScrollMode.ScrollPerPixel)
-        self.members_table.setVerticalScrollMode(QTableWidget.ScrollMode.ScrollPerPixel)
-        self.members_table.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.members_table.setHorizontalScrollMode(
+            QTableWidget.ScrollMode.ScrollPerPixel
+        )
+        self.members_table.setVerticalScrollMode(
+            QTableWidget.ScrollMode.ScrollPerPixel
+        )
+        self.members_table.setVerticalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAsNeeded
+        )
         
-        # Connect selection signal
-        self.members_table.itemSelectionChanged.connect(self._on_selection_changed)
+        self.members_table.itemSelectionChanged.connect(
+            self._on_selection_changed
+        )
         
         return self.members_table
     
     def _create_action_buttons(self):
-        """
-        Create action button layout.
-        Returns: QHBoxLayout containing action buttons
-        """
+        # Return layout with CRUD and navigation buttons.
         action_layout = QHBoxLayout()
         
-        # CRUD buttons
-        buttons = [
-            ("Add Member", self._add_member, BUTTON_WIDTH_STANDARD),
-            ("View Member", self._view_member, BUTTON_WIDTH_STANDARD),
-            ("Update Member", self._update_member, BUTTON_WIDTH_WIDE),
-            ("Delete Member", self._delete_member, BUTTON_WIDTH_WIDE)
+        button_configs = [
+            ("Add Member", self._add_member, AppConfig.BUTTON_WIDTH_STANDARD),
+            ("View Member", self._view_member, AppConfig.BUTTON_WIDTH_STANDARD),
+            ("Update Member", self._update_member, AppConfig.BUTTON_WIDTH_MEDIUM),
+            ("Delete Member", self._delete_member, AppConfig.BUTTON_WIDTH_MEDIUM)
         ]
         
-        for text, callback, width in buttons:
-            btn = self._create_button(text, callback, width)
+        for text, callback, width in button_configs:
+            btn = self._create_action_button(text, callback, width)
             action_layout.addWidget(btn)
         
         action_layout.addStretch()
         
-        # Back button
-        back_btn = self._create_button("Back to Dashboard", self._go_back_to_dashboard, 150)
+        back_btn = self._create_action_button(
+            "Back to Dashboard",
+            self._go_back_to_dashboard,
+            AppConfig.BUTTON_WIDTH_WIDE
+        )
         action_layout.addWidget(back_btn)
-        
         return action_layout
     
-    def _create_button(self, text, callback, width=BUTTON_WIDTH_STANDARD):
-        """
-        Create styled button.
-        Args:
-            text: Button text
-            callback: Click callback function
-            width: Button width
-        Returns: QPushButton
-        """
+    def _create_action_button(self, text, callback, width=None):
+        # Return styled, sized, connected action button.
         btn = QPushButton(text)
         btn.setFont(QFont("Montserrat", 10))
-        btn.setFixedSize(width, BUTTON_HEIGHT)
-        btn.setStyleSheet(BUTTON_STYLE)
+        button_width = width if width else AppConfig.BUTTON_WIDTH_STANDARD
+        btn.setFixedSize(button_width, AppConfig.BUTTON_HEIGHT)
+        btn.setStyleSheet(AppConfig.STYLES['button'])
         btn.clicked.connect(callback)
         return btn
     
     def _on_selection_changed(self):
-        """Track selected member when selection changes."""
+        # Track selected member ID from table row; handle errors.
         try:
             selected_row = self.members_table.currentRow()
             if selected_row >= 0:
-                self.selected_member_id = self.members_table.item(selected_row, 0).text()
+                self.selected_member_id = self.members_table.item(
+                    selected_row, 0
+                ).text()
             else:
                 self.selected_member_id = None
         except Exception as e:
-            print(f"[ERROR] Selection change: {e}")
+            print(f"[ERROR] Selection change failed: {e}")
             self.selected_member_id = None
     
     def _clear_selection(self, event):
-        """Clear table selection when clicking empty space."""
+        # Deselect table and clear input focus on empty-space click.
         try:
             if self.members_table:
                 self.members_table.clearSelection()
                 self.selected_member_id = None
-            
-            # Clear focus from input widgets
             if hasattr(self, "search_input"):
                 self.search_input.clearFocus()
             if hasattr(self, "status_combo"):
                 self.status_combo.clearFocus()
         except Exception as e:
-            print(f"[WARN] Clear selection: {e}")
-        
+            print(f"[WARN] Clear selection error: {e}")
         QWidget.mousePressEvent(self.centralWidget(), event)
     
     def _handle_header_click(self, logical_index):
-        """
-        Handle column header click for sorting.
-        Args:
-            logical_index: Column index clicked
-        """
+        # Toggle sort order on header click and refresh display.
         try:
             if self.sort_column == logical_index:
                 self.sort_order = (
@@ -378,133 +249,104 @@ class PatronManagement(QMainWindow):
             else:
                 self.sort_column = logical_index
                 self.sort_order = Qt.SortOrder.AscendingOrder
-            
             self._filter_members()
         except Exception as e:
-            print(f"[ERROR] Header click: {e}")
-            QMessageBox.warning(self, "Error", "Failed to sort table")
+            print(f"[ERROR] Header click failed: {e}")
+            QMessageBox.warning(self, "Sort Error", "Failed to sort table")
     
     def _load_members_from_database(self):
-        """Load all members from database."""
+        # Fetch all members from db, store locally, and display; handle errors and empty cases.
         if not self._validate_database_connection():
             return
         
         try:
             query = "SELECT * FROM members ORDER BY member_id"
             self.all_members = self.db.fetch_all(query)
-            
             if self.all_members:
                 print(f"[OK] Loaded {len(self.all_members)} members")
                 self._filter_members()
             else:
-                print("[WARNING] No members found")
+                print("[WARNING] No members found in database")
                 self.members_table.setRowCount(0)
-                
         except Exception as e:
             print(f"[ERROR] Failed to load members: {e}")
             import traceback
             traceback.print_exc()
-            QMessageBox.critical(self, "Error", f"Failed to load members:\n{str(e)}")
+            QMessageBox.critical(
+                self, "Database Error",
+                f"Failed to load members from database:\n{str(e)}"
+            )
     
     def _display_members(self, members):
-        """
-        Display members in table.
-        Args:
-            members: List of member dictionaries
-        """
+        # Populate table with member data; color status column.
         try:
             self.members_table.setRowCount(len(members))
-            
             for row, member in enumerate(members):
-                for col, key in enumerate(COLUMN_NAMES):
+                for col, key in enumerate(AppConfig.PATRON_TABLE['keys']):
                     value = str(member.get(key, ''))
                     item = self._create_table_item(value)
-                    
-                    # Apply status color
-                    if col == 4:  # Status column
-                        color = self._get_status_color(member['status'])
+                    if col == 4:
+                        color = (
+                            AppConfig.COLORS['status_active']
+                            if member['status'] == 'Active'
+                            else AppConfig.COLORS['status_inactive']
+                        )
                         item.setForeground(QColor(color))
-                    
                     self.members_table.setItem(row, col, item)
-                    
         except Exception as e:
-            print(f"[ERROR] Display members: {e}")
+            print(f"[ERROR] Display members failed: {e}")
             import traceback
             traceback.print_exc()
     
     def _create_table_item(self, text):
-        """
-        Create formatted table item.
-        Args:
-            text: Item text
-        Returns: QTableWidgetItem
-        """
+        # Return centered, styled table cell item.
         item = QTableWidgetItem(text)
         item.setFont(QFont("Montserrat", 10))
-        item.setForeground(QColor(TEXT_BLACK))
-        item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
+        item.setForeground(QColor(AppConfig.COLORS['text_dark']))
+        item.setTextAlignment(
+            Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter
+        )
         return item
     
     def _filter_members(self):
-        """Filter members based on search criteria."""
+        # Apply search and status filters, sort if active, then display results.
         try:
             if not self.all_members:
                 return
-            
             search_text = self.search_input.text().lower().strip()
             status = self.status_combo.currentText()
-            
-            # Apply filters
             filtered_members = [
                 member for member in self.all_members
-                if self._matches_filters(member, search_text, status)
+                if self._member_matches_filters(member, search_text, status)
             ]
-            
-            # Apply sorting
             if self.sort_column is not None and filtered_members:
                 filtered_members = self._sort_members(filtered_members)
-            
             self._display_members(filtered_members)
             print(f"[INFO] Filtered to {len(filtered_members)} members")
-            
         except Exception as e:
-            print(f"[ERROR] Filter members: {e}")
+            print(f"[ERROR] Filter members failed: {e}")
             import traceback
             traceback.print_exc()
     
-    def _matches_filters(self, member, search_text, status):
-        """
-        Check if member matches filter criteria.
-        Args:
-            member: Member dictionary
-            search_text: Search string
-            status: Status filter
-        Returns: True if matches, False otherwise
-        """
+    def _member_matches_filters(self, member, search_text, status):
+        # Return True if member matches status and text filters.
         if status != "All" and member['status'] != status:
             return False
-        
         if search_text:
-            searchable = [
+            searchable_fields = [
                 str(member.get('member_id', '')),
                 str(member.get('full_name', '')),
                 str(member.get('email', '')),
                 str(member.get('mobile_number', ''))
             ]
-            if not any(search_text in field.lower() for field in searchable):
+            if not any(search_text in field.lower() for field in searchable_fields):
                 return False
-        
         return True
     
     def _sort_members(self, members):
-        """
-        Sort members by selected column.
-        Args:
-            members: List of member dictionaries
-        Returns: Sorted list
-        """
-        if self.sort_column < len(COLUMN_NAMES):
-            sort_key = COLUMN_NAMES[self.sort_column]
+        # Return members sorted by current column and order.
+        if self.sort_column < len(AppConfig.PATRON_TABLE['keys']):
+            sort_key = AppConfig.PATRON_TABLE['keys'][self.sort_column]
             return sorted(
                 members,
                 key=lambda x: str(x.get(sort_key, '')).lower(),
@@ -512,125 +354,145 @@ class PatronManagement(QMainWindow):
             )
         return members
     
-    def _get_status_color(self, status):
-        """
-        Get color for member status.
-        Args:
-            status: Member status
-        Returns: Color code string
-        """
-        return STATUS_ACTIVE if status == 'Active' else STATUS_INACTIVE
-    
     def _validate_database_connection(self):
-        """
-        Validate database connection.
-        Returns: True if connected, False otherwise
-        """
+        # Return False if db missing; show warning.
         if not self.db or not self.db.connection:
-            print("[WARNING] No database connection")
-            QMessageBox.warning(self, "Database Error", "Not connected to database.")
+            print("[WARNING] No database connection available")
+            QMessageBox.warning(
+                self, "Database Error",
+                "Not connected to database. Some features may be unavailable."
+            )
             return False
         return True
     
     def _validate_selection(self):
-        """
-        Validate member selection.
-        Returns: True if member selected, False otherwise
-        """
+        # Return False if no member selected; show warning.
         if not self.selected_member_id:
-            QMessageBox.warning(self, "No Selection", "Please select a member first.")
+            QMessageBox.warning(
+                self, "No Selection",
+                "Please select a member from the table first."
+            )
             return False
         return True
     
     def _add_member(self):
-        """Open add member dialog."""
+        # Open add-member dialog; refresh on success.
         try:
-            dialog = AddMemberDialog(self, self.db, self._load_members_from_database)
+            dialog = AddMemberDialog(
+                parent=self,
+                db=self.db,
+                callback=self._load_members_from_database
+            )
             dialog.exec()
         except Exception as e:
-            print(f"[ERROR] Add member: {e}")
-            QMessageBox.critical(self, "Error", "Failed to open add member dialog")
+            print(f"[ERROR] Add member dialog failed: {e}")
+            QMessageBox.critical(
+                self, "Dialog Error",
+                "Failed to open add member dialog"
+            )
     
     def _view_member(self):
-        """View selected member."""
+        # Open read-only view dialog for selected member; validate selection and existence.
         if not self._validate_selection():
             return
-        
         try:
             query = "SELECT * FROM members WHERE member_id = %s"
             member_data = self.db.fetch_one(query, (self.selected_member_id,))
-            
             if member_data:
-                dialog = ViewMemberDialog(self, member_data)
+                dialog = ViewMemberDialog(parent=self, member_data=member_data)
                 dialog.exec()
             else:
-                QMessageBox.warning(self, "Error", "Member not found in database")
+                QMessageBox.warning(
+                    self, "Member Not Found",
+                    "Selected member not found in database"
+                )
                 self._load_members_from_database()
-                
         except Exception as e:
-            print(f"[ERROR] View member: {e}")
-            QMessageBox.critical(self, "Error", f"Failed to view member:\n{str(e)}")
+            print(f"[ERROR] View member failed: {e}")
+            QMessageBox.critical(
+                self, "View Error",
+                f"Failed to view member:\n{str(e)}"
+            )
     
     def _update_member(self):
-        """Update selected member."""
+        # Open editable update dialog; refresh on success.
         if not self._validate_selection():
             return
-        
         try:
             query = "SELECT * FROM members WHERE member_id = %s"
             member_data = self.db.fetch_one(query, (self.selected_member_id,))
-            
             if member_data:
-                dialog = UpdateMemberDialog(self, self.db, member_data, self._load_members_from_database)
+                dialog = UpdateMemberDialog(
+                    parent=self,
+                    db=self.db,
+                    member_data=member_data,
+                    callback=self._load_members_from_database
+                )
                 dialog.exec()
             else:
-                QMessageBox.warning(self, "Error", "Member not found in database")
+                QMessageBox.warning(
+                    self, "Member Not Found",
+                    "Selected member not found in database"
+                )
                 self._load_members_from_database()
-                
         except Exception as e:
-            print(f"[ERROR] Update member: {e}")
-            QMessageBox.critical(self, "Error", f"Failed to update member:\n{str(e)}")
+            print(f"[ERROR] Update member failed: {e}")
+            QMessageBox.critical(
+                self, "Update Error",
+                f"Failed to update member:\n{str(e)}"
+            )
     
     def _delete_member(self):
-        """Delete selected member."""
+        # Confirm and delete selected member; refresh on success.
         if not self._validate_selection():
             return
-        
         try:
             query = "SELECT full_name FROM members WHERE member_id = %s"
             member_data = self.db.fetch_one(query, (self.selected_member_id,))
-            
             if not member_data:
-                QMessageBox.warning(self, "Error", "Member not found in database")
+                QMessageBox.warning(
+                    self, "Member Not Found",
+                    "Selected member not found in database"
+                )
                 self._load_members_from_database()
                 return
-            
-            dialog = ConfirmDeleteMemberDialog(self, member_data['full_name'])
+            dialog = ConfirmDeleteMemberDialog(
+                parent=self,
+                member_name=member_data['full_name']
+            )
             if dialog.exec() == QDialog.DialogCode.Accepted:
                 delete_query = "DELETE FROM members WHERE member_id = %s"
-                if self.db.execute_query(delete_query, (self.selected_member_id,)):
+                if self.db.execute_query(
+                    delete_query,
+                    (self.selected_member_id,)
+                ):
                     QMessageBox.information(
-                        self, "Success",
-                        f"Member '{member_data['full_name']}' deleted successfully!"
+                        self, "Delete Successful",
+                        f"Member '{member_data['full_name']}' has been deleted."
                     )
                     self.selected_member_id = None
                     self._load_members_from_database()
                 else:
-                    QMessageBox.critical(self, "Error", "Failed to delete member")
-                    
+                    QMessageBox.critical(
+                        self, "Delete Failed",
+                        "Failed to delete member from database"
+                    )
         except Exception as e:
-            print(f"[ERROR] Delete member: {e}")
-            QMessageBox.critical(self, "Error", f"Failed to delete member:\n{str(e)}")
+            print(f"[ERROR] Delete member failed: {e}")
+            QMessageBox.critical(
+                self, "Delete Error",
+                f"Failed to delete member:\n{str(e)}"
+            )
     
     def _go_back_to_dashboard(self):
-        """Close window and return to dashboard."""
+        # Close window to return to dashboard.
         self.close()
     
     def _show_fullscreen(self):
-        """Display window in maximized state."""
+        # Maximize window on launch.
         self.setWindowState(Qt.WindowState.WindowMaximized)
         self.showMaximized()
     
     def closeEvent(self, event):
-        """Handle window close event."""
+        # Allow window to close normally.
         event.accept()

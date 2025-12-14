@@ -1,31 +1,17 @@
 # curatel_lms/database.py
 
-"""
-Database management module.
-Handles all MySQL database connections and CRUD operations with comprehensive error handling.
-"""
+# Database management module: handles MySQL connections and CRUD operations with error handling.
 
 import mysql.connector
 from mysql.connector import Error
 from typing import List, Dict, Optional, Tuple, Any
 
 class Database:
-    """
-    MySQL database connection manager.
-    Provides methods for executing queries and fetching results safely.
-    """
+    # MySQL connection manager: safely executes queries and fetches results.
     
     def __init__(self, host: str = 'localhost', user: str = 'root', 
                  password: str = '', database: str = 'db_library'):
-        """
-        Initialize database connection parameters.
-        
-        Args:
-            host: Database server hostname
-            user: Database username
-            password: Database password
-            database: Database name
-        """
+        # Set connection params and log init.
         self.connection = None
         self.host = host
         self.user = user
@@ -34,12 +20,7 @@ class Database:
         print(f"[INFO] Database initialized: {database}")
     
     def connect(self) -> bool:
-        """
-        Establish connection to MySQL database.
-        
-        Returns:
-            bool: True if connection successful, False otherwise
-        """
+        # Connect to MySQL; return True on success.
         try:
             self.connection = mysql.connector.connect(
                 host=self.host,
@@ -61,23 +42,12 @@ class Database:
             return False
     
     def execute_query(self, query: str, params: Optional[Tuple] = None) -> bool:
-        """
-        Execute INSERT, UPDATE, or DELETE query.
-        
-        Args:
-            query: SQL query string
-            params: Optional tuple of query parameters
-            
-        Returns:
-            bool: True if successful, False otherwise
-        """
+        # Run INSERT/UPDATE/DELETE; return success status.
         if not self._is_connected():
             return False
             
         try:
             cursor = self.connection.cursor()
-            
-            # Execute with or without parameters
             if params:
                 cursor.execute(query, params)
             else:
@@ -95,23 +65,12 @@ class Database:
             return False
     
     def fetch_all(self, query: str, params: Optional[Tuple] = None) -> List[Dict[str, Any]]:
-        """
-        Fetch all records from SELECT query.
-        
-        Args:
-            query: SQL SELECT query string
-            params: Optional tuple of query parameters
-            
-        Returns:
-            List of dictionaries containing query results
-        """
+        # Run SELECT; return all results as list of dicts.
         if not self._is_connected():
             return []
             
         try:
             cursor = self.connection.cursor(dictionary=True)
-            
-            # Execute with or without parameters
             if params:
                 cursor.execute(query, params)
             else:
@@ -127,23 +86,12 @@ class Database:
             return []
     
     def fetch_one(self, query: str, params: Optional[Tuple] = None) -> Optional[Dict[str, Any]]:
-        """
-        Fetch single record from SELECT query.
-        
-        Args:
-            query: SQL SELECT query string
-            params: Optional tuple of query parameters
-            
-        Returns:
-            Dictionary containing single result or None if not found
-        """
+        # Run SELECT; return one result as dict or None.
         if not self._is_connected():
             return None
             
         try:
             cursor = self.connection.cursor(dictionary=True)
-            
-            # Execute with or without parameters
             if params:
                 cursor.execute(query, params)
             else:
@@ -164,28 +112,23 @@ class Database:
             return None
     
     def close(self) -> None:
-        """Close database connection if open."""
+        # Close connection if open.
         if self.connection and self.connection.is_connected():
             self.connection.close()
             print("[INFO] Database connection closed")
     
     def _is_connected(self) -> bool:
-        """
-        Check if database connection is active.
-        
-        Returns:
-            bool: True if connected, False otherwise
-        """
+        # Check if connection is active.
         if not self.connection or not self.connection.is_connected():
             print("[ERROR] No active database connection")
             return False
         return True
     
     def __enter__(self):
-        """Context manager entry - establishes connection."""
+        # Context entry: connect.
         self.connect()
         return self
     
     def __exit__(self, exc_type, exc_val, exc_tb):
-        """Context manager exit - closes connection."""
+        # Context exit: close connection.
         self.close()

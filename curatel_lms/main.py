@@ -1,18 +1,15 @@
 # curatel_lms/main.py
 
-"""
-Application entry point.
-Initializes the library management system with GUI, database, and custom fonts.
-"""
+# App entry point: sets up GUI, DB, and fonts
 
 import sys
 import os
 from typing import List
 
-# Configure import paths
+# Add parent dir to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Verify required dependencies
+# Check MySQL dependency
 try:
     import mysql.connector
     print("[OK] MySQL connector available")
@@ -26,10 +23,10 @@ from PyQt6.QtGui import QFontDatabase
 from curatel_lms.ui.login_screen import LoginScreen
 from curatel_lms.database import Database
 
-# Application base directory
+# Base project directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Font configuration
+# List of required font files
 REQUIRED_FONTS = [
     "Montserrat-Regular.ttf",
     "Montserrat-Bold.ttf",
@@ -38,32 +35,27 @@ REQUIRED_FONTS = [
 ]
 
 def load_fonts() -> bool:
-    """
-    Load custom fonts from fonts directory.
-    
-    Returns:
-        bool: True if all fonts loaded successfully, False otherwise
-    """
+    # Load custom fonts; return success status
     fonts_dir = os.path.join(BASE_DIR, "fonts")
     all_loaded = True
     
     for font_file in REQUIRED_FONTS:
         font_path = os.path.join(fonts_dir, font_file)
         
-        # Check if font file exists
+        # Skip if font file missing
         if not os.path.exists(font_path):
             print(f"[WARNING] Font missing: {font_file}")
             all_loaded = False
             continue
         
-        # Load font into application
+        # Add font to app
         if QFontDatabase.addApplicationFont(font_path) == -1:
             print(f"[ERROR] Failed to load font: {font_file}")
             all_loaded = False
         else:
             print(f"[OK] Font loaded: {font_file}")
     
-    # Print summary
+    # Show font load summary
     if all_loaded:
         print("✓ All fonts loaded successfully")
     else:
@@ -72,12 +64,7 @@ def load_fonts() -> bool:
     return all_loaded
 
 def connect_database() -> Database:
-    """
-    Initialize and connect to MySQL database.
-    
-    Returns:
-        Database: Database instance (connected or not)
-    """
+    # Connect to MySQL DB; return Database instance
     db = Database()
     
     if db.connect():
@@ -89,38 +76,35 @@ def connect_database() -> Database:
     return db
 
 def main() -> None:
-    """
-    Main application entry point.
-    Initializes Qt application, loads resources, and displays login screen.
-    """
+    # Start app: init Qt, load fonts, connect DB, show login
     try:
-        # Initialize Qt application
+        # Create Qt app
         app = QApplication(sys.argv)
         app.setApplicationName("Curatel Library Management System")
         app.setOrganizationName("Curatel")
         
         print("[INFO] Application initialized")
         
-        # Load custom fonts
+        # Load fonts
         load_fonts()
         
-        # Connect to database
+        # Connect DB
         db = connect_database()
         
         if not db.connection:
             print("[WARNING] Starting without database connection")
         
-        # Create and show login window
+        # Show login screen
         print("[INFO] Launching login screen")
         login_window = LoginScreen(db)
         login_window.show()
         print("[OK] Application started successfully")
         
-        # Start Qt event loop
+        # Run event loop
         sys.exit(app.exec())
     
     except Exception as e:
-        # Handle critical errors
+        # Log and exit on crash
         print(f"[CRITICAL] Application error: {type(e).__name__}: {e}")
         import traceback
         traceback.print_exc()

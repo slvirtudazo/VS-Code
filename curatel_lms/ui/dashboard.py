@@ -1,9 +1,6 @@
 # curatel_lms/ui/dashboard.py
 
-"""
-Dashboard module.
-Main navigation hub for library management system.
-"""
+# Dashboard module: main navigation hub for library system
 
 import os
 from PyQt6.QtWidgets import (
@@ -17,9 +14,9 @@ from curatel_lms.config import AppConfig
 
 
 class Dashboard(QMainWindow):
-    """Main dashboard with navigation to all management modules."""
+    # Main dashboard with navigation to all management modules
     
-    # Navigation card configuration
+    # Navigation card config
     CARDS = [
         {
             'title': 'Catalog Management',
@@ -48,11 +45,7 @@ class Dashboard(QMainWindow):
     ]
     
     def __init__(self, db=None):
-        """
-        Initialize dashboard.
-        Args:
-            db: Database connection object
-        """
+        # Initialize dashboard with optional db connection
         super().__init__()
         self.db = db
         self.closing_without_prompt = False
@@ -63,7 +56,7 @@ class Dashboard(QMainWindow):
         self._show_fullscreen()
     
     def _setup_ui(self):
-        """Configure dashboard layout with header and navigation cards."""
+        # Set up dashboard layout: header + navigation cards
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         central_widget.setStyleSheet(f"background-color: {AppConfig.COLORS['bg_white']};")
@@ -72,21 +65,18 @@ class Dashboard(QMainWindow):
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
         
-        # Header section
+        # Header
         main_layout.addWidget(self._create_header())
         
-        # Divider line
+        # Divider
         main_layout.addSpacing(5)
         main_layout.addWidget(self._create_divider())
         
-        # Content area with navigation cards
+        # Content area
         main_layout.addWidget(self._create_content())
     
     def _create_header(self):
-        """
-        Create header with title and logout button.
-        Returns: QWidget containing header
-        """
+        # Build header with title and logout button
         header_widget = QWidget()
         header_widget.setStyleSheet(f"background-color: {AppConfig.COLORS['bg_white']};")
         header_widget.setFixedHeight(100)
@@ -131,10 +121,7 @@ class Dashboard(QMainWindow):
         return header_widget
 
     def _create_divider(self):
-        """
-        Create horizontal divider line.
-        Returns: QFrame configured as divider
-        """
+        # Create horizontal divider line
         line = QFrame()
         line.setFrameShape(QFrame.Shape.HLine)
         line.setFrameShadow(QFrame.Shadow.Plain)
@@ -146,17 +133,14 @@ class Dashboard(QMainWindow):
         return line
 
     def _create_content(self):
-        """
-        Create content area with navigation cards.
-        Returns: QWidget containing navigation cards
-        """
+        # Build content area with navigation cards
         content_widget = QWidget()
         content_widget.setStyleSheet(f"background-color: {AppConfig.COLORS['bg_white']};")
         
         content_layout = QVBoxLayout(content_widget)
         content_layout.setContentsMargins(60, 90, 60, 90)
         
-        # Create two rows of navigation cards
+        # Two rows of cards
         content_layout.addLayout(self._create_card_row(0, 2))
         content_layout.addSpacing(70)
         content_layout.addLayout(self._create_card_row(2, 4))
@@ -165,13 +149,7 @@ class Dashboard(QMainWindow):
         return content_widget
     
     def _create_card_row(self, start_idx, end_idx):
-        """
-        Create row of navigation cards.
-        Args:
-            start_idx: Starting index in CARDS list
-            end_idx: Ending index in CARDS list
-        Returns: QHBoxLayout containing card buttons
-        """
+        # Create row of navigation cards from CARDS list slice
         row_layout = QHBoxLayout()
         row_layout.setContentsMargins(0, 30, 0, 0)
         row_layout.addStretch()
@@ -187,7 +165,6 @@ class Dashboard(QMainWindow):
                 card_config['subtitle'],
                 image_path
             )
-            # Connect to handler method
             card_btn.clicked.connect(getattr(self, card_config['handler']))
             row_layout.addWidget(card_btn)
         
@@ -195,14 +172,7 @@ class Dashboard(QMainWindow):
         return row_layout
     
     def _create_menu_card(self, title, subtitle, image_path=None):
-        """
-        Create navigation card button.
-        Args:
-            title: Card title text
-            subtitle: Card subtitle text
-            image_path: Path to icon image
-        Returns: QPushButton configured as navigation card
-        """
+        # Create styled navigation card button
         btn = QPushButton()
         btn.setFixedSize(540, 200)
         btn.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -237,7 +207,7 @@ class Dashboard(QMainWindow):
             icon_label.setPixmap(pixmap)
         layout.addWidget(icon_label, alignment=Qt.AlignmentFlag.AlignVCenter)
 
-        # Text section
+        # Text
         text_layout = QVBoxLayout()
         text_layout.setContentsMargins(15, 70, 15, 0)
         text_layout.setSpacing(10)
@@ -264,7 +234,7 @@ class Dashboard(QMainWindow):
         return btn
     
     def _open_catalog_management(self):
-        """Open catalog management window."""
+        # Launch catalog management window
         try:
             from curatel_lms.ui.catalog_management import CatalogManagement
             self.catalog_window = CatalogManagement(self.db)
@@ -274,7 +244,7 @@ class Dashboard(QMainWindow):
             QMessageBox.critical(self, "Error", "Failed to open Catalog Management")
     
     def _open_circulation_management(self):
-        """Open circulation management window."""
+        # Launch circulation management window
         try:
             from curatel_lms.ui.circulation_management import CirculationManagement
             self.circulation_window = CirculationManagement(self.db)
@@ -284,7 +254,7 @@ class Dashboard(QMainWindow):
             QMessageBox.critical(self, "Error", "Failed to open Circulation Management")
     
     def _open_patron_management(self):
-        """Open patron management window."""
+        # Launch patron management window
         try:
             from curatel_lms.ui.patron_management import PatronManagement
             self.patron_window = PatronManagement(self.db)
@@ -294,7 +264,7 @@ class Dashboard(QMainWindow):
             QMessageBox.critical(self, "Error", "Failed to open Patron Management")
     
     def _open_reports_analytics(self):
-        """Open reports and analytics window."""
+        # Launch reports and analytics window
         try:
             from curatel_lms.ui.library_reports import ReportsAnalytics
             self.reports_window = ReportsAnalytics(self.db)
@@ -304,7 +274,7 @@ class Dashboard(QMainWindow):
             QMessageBox.critical(self, "Error", "Failed to open Library Reports")
     
     def _logout(self):
-        """Handle logout with confirmation."""
+        # Confirm and handle logout
         reply = QMessageBox.question(
             self, "Logout", "Are you sure you want to logout?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
@@ -322,16 +292,12 @@ class Dashboard(QMainWindow):
                 QMessageBox.critical(self, "Error", "Logout failed")
     
     def _show_fullscreen(self):
-        """Set window to maximized state."""
+        # Maximize window on launch
         self.setWindowState(Qt.WindowState.WindowMaximized)
         self.showMaximized()
     
     def closeEvent(self, event):
-        """
-        Handle window close with confirmation.
-        Args:
-            event: Close event
-        """
+        # Confirm app exit unless skipping prompt
         if self.closing_without_prompt:
             event.accept()
             return

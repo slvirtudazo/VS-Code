@@ -1,22 +1,18 @@
 # curatel_lms/ui/library_reports.py
-
-"""
-Library reports module.
-Displays statistics, trends, and analytics for the library.
-"""
+# Library analytics dashboard: stats, trends, and live database insights
 
 from PyQt6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
                              QPushButton, QTableWidget, QTableWidgetItem, QHeaderView)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QColor
 
-# UI Constants
+# UI layout constants
 BUTTON_HEIGHT = 40
 CARD_PADDING = 15
 TABLE_HEIGHT = 400
 TABLE_WIDTH = 685
 
-# Style Constants
+# Table appearance style
 TABLE_STYLE = """
     QTableWidget {
         border: 1px solid #8B7E66;
@@ -49,6 +45,7 @@ TABLE_STYLE = """
     }
 """
 
+# Button appearance style
 BUTTON_STYLE = """
     QPushButton {
         background-color: #8B7E66;
@@ -61,7 +58,7 @@ BUTTON_STYLE = """
     }
 """
 
-# SQL Query Constants
+# Database queries for stats
 QUERY_TOTAL_MEMBERS = "SELECT COUNT(*) as total FROM members"
 QUERY_ACTIVE_MEMBERS = "SELECT COUNT(*) as active FROM members WHERE status = 'Active'"
 QUERY_INACTIVE_MEMBERS = "SELECT COUNT(*) as inactive FROM members WHERE status = 'Inactive'"
@@ -95,14 +92,14 @@ QUERY_POPULAR_BOOKS = """
 """
 
 class ReportsAnalytics(QMainWindow):
-    """Library Reports screen - displays dynamic data from database with real-time overdue and fines"""
+    # Main reports window: shows real-time library stats and sortable tables
     
     def __init__(self, db=None):
         super().__init__()
         self.db = db
         self.setWindowTitle("Curatel - Library Reports")
         
-        # Initialize statistics storage
+        # Store key metrics
         self.stats = {
             'total_members': 0,
             'active_members': 0,
@@ -112,11 +109,11 @@ class ReportsAnalytics(QMainWindow):
             'total_fines': 0.0
         }
         
-        # Initialize table data storage for sorting
+        # Store raw table data for sorting
         self.top_borrowers_data = []
         self.popular_books_data = []
         
-        # Initialize sort states
+        # Track sort state per table
         self.top_borrowers_sort_column = None
         self.top_borrowers_sort_order = Qt.SortOrder.AscendingOrder
         self.popular_books_sort_column = None
@@ -124,7 +121,7 @@ class ReportsAnalytics(QMainWindow):
         
         try:
             self.setup_ui()
-            self.load_statistics()  # Load data after UI is ready
+            self.load_statistics()
             self.show_fullscreen()
             print("[INFO] Library Reports opened successfully with live data")
         except Exception as e:
@@ -133,7 +130,7 @@ class ReportsAnalytics(QMainWindow):
             traceback.print_exc()
     
     def setup_ui(self):
-        """Setup UI matching circulation management design"""
+        # Build UI matching circulation screen style
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         central_widget.setStyleSheet("background-color: white;")
@@ -142,7 +139,7 @@ class ReportsAnalytics(QMainWindow):
         main_layout.setContentsMargins(40, 20, 40, 30)
         main_layout.setSpacing(-5)
 
-        # Header section
+        # Header with title, subtitle, and back button
         header_layout = QHBoxLayout()
         header_text = QVBoxLayout()
 
@@ -180,7 +177,7 @@ class ReportsAnalytics(QMainWindow):
         main_layout.addLayout(header_layout)
         main_layout.addSpacing(20)
 
-        # Statistics cards
+        # Stats cards row
         stats_layout = QHBoxLayout()
         self.total_members_card = self.create_stat_card("Total Members", "Loading...")
         self.currently_borrowed_card = self.create_stat_card("Currently Borrowed", "Loading...")
@@ -193,26 +190,24 @@ class ReportsAnalytics(QMainWindow):
         main_layout.addLayout(stats_layout)
         main_layout.addSpacing(30)
 
-        # Create two frames side by side for tables
+        # Side-by-side tables
         tables_layout = QHBoxLayout()
 
-        # Left frame: Top Borrowers
+        # Top Borrowers table
         self.top_borrowers_table, top_borrowers_widget = self.create_table_section(
             "Top Borrowers",
             "Members with the most borrowed books",
             ["Rank", "Full Name", "Books", "Fine"]
         )
-        # Connect header click for sorting
         self.top_borrowers_table.horizontalHeader().sectionClicked.connect(self.handle_top_borrowers_header_click)
         tables_layout.addWidget(top_borrowers_widget)
 
-        # Right frame: Most Popular Books
+        # Popular Books table
         self.popular_books_table, popular_books_widget = self.create_table_section(
             "Most Popular Books",
             "Books borrowed most of the time",
             ["Rank", "Book Title", "Times Borrowed"]
         )
-        # Connect header click for sorting
         self.popular_books_table.horizontalHeader().sectionClicked.connect(self.handle_popular_books_header_click)
         tables_layout.addWidget(popular_books_widget)
 
@@ -220,12 +215,7 @@ class ReportsAnalytics(QMainWindow):
         main_layout.addStretch()
 
     def _fetch_count(self, query):
-        """
-        Fetch count from query result.
-        Args:
-            query: SQL query string
-        Returns: Count value or 0
-        """
+        # Get single count value from query
         result = self.db.fetch_one(query)
         if result:
             key = list(result.keys())[0]
@@ -233,7 +223,7 @@ class ReportsAnalytics(QMainWindow):
         return 0
 
     def _calculate_statistics(self):
-        """Calculate all library statistics."""
+        # Compute all report metrics
         self.stats = {
             'total_members': self._fetch_count(QUERY_TOTAL_MEMBERS),
             'active_members': self._fetch_count(QUERY_ACTIVE_MEMBERS),
@@ -244,7 +234,7 @@ class ReportsAnalytics(QMainWindow):
         }
 
     def _fetch_total_fines(self):
-        """Fetch total fines amount."""
+        # Get sum of all fines
         result = self.db.fetch_one(QUERY_TOTAL_FINES)
         if result and result['total_fines']:
             return float(result['total_fines'])
@@ -252,7 +242,7 @@ class ReportsAnalytics(QMainWindow):
 
     
     def create_stat_card(self, title, value):
-        """Create a statistics card that can be updated later"""
+        # Build reusable stat card widget
         card = QWidget()
         card.setStyleSheet("""
             QWidget {
@@ -281,7 +271,7 @@ class ReportsAnalytics(QMainWindow):
         value_label.setFont(QFont("Montserrat", 11))
         value_label.setStyleSheet("color: #333333; background-color: transparent;")
         value_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        value_label.setObjectName("value_label")  # Set object name so we can find and update it later
+        value_label.setObjectName("value_label")
         layout.addWidget(value_label)
         value_label.setStyleSheet("""
             color: black; 
@@ -292,114 +282,89 @@ class ReportsAnalytics(QMainWindow):
         return card
     
     def update_stat_card(self, card, value):
-        """Update the value displayed in a stat card"""
+        # Update stat card value by name
         value_label = card.findChild(QLabel, "value_label")
         if value_label:
             value_label.setText(value)
     
     def load_statistics(self):
-        """Load all statistics from the database"""
+        # Load all stats and tables from DB
         if not self.db or not self.db.connection:
             print("[WARNING] No database connection for reports")
             return
         
         try:
-            # Load member statistics
             self.load_member_stats()
-            
-            # Load borrowing statistics
             self.load_borrowing_stats()
-            
-            # Update the stat cards with live data
             self.update_stat_cards()
-            
-            # Populate the tables with live data (store raw data for sorting)
             self.load_borrowers_data()
             self.load_popular_books_data()
             self.display_sorted_borrowers()
             self.display_sorted_popular_books()
-            
             print("[INFO] Successfully loaded all report statistics")
-            
         except Exception as e:
             print(f"[ERROR] Failed to load statistics: {e}")
             import traceback
             traceback.print_exc()
     
     def load_member_stats(self):
-        """Load member-related statistics from database"""
+        # Load member counts from DB
         try:
-            # Get total members count
             query = "SELECT COUNT(*) as total FROM members"
             result = self.db.fetch_one(query)
             self.stats['total_members'] = result['total'] if result else 0
             
-            # Get active members count
             query = "SELECT COUNT(*) as active FROM members WHERE status = 'Active'"
             result = self.db.fetch_one(query)
             self.stats['active_members'] = result['active'] if result else 0
             
-            # Get inactive members count
             query = "SELECT COUNT(*) as inactive FROM members WHERE status = 'Inactive'"
             result = self.db.fetch_one(query)
             self.stats['inactive_members'] = result['inactive'] if result else 0
             
             print(f"[INFO] Loaded member stats: {self.stats['total_members']} total, "
                   f"{self.stats['active_members']} active, {self.stats['inactive_members']} inactive")
-            
         except Exception as e:
             print(f"[ERROR] Failed to load member stats: {e}")
     
     def load_borrowing_stats(self):
-        """Load borrowing-related statistics from database - REAL-TIME overdue and fines"""
+        # Load real-time borrowing data
         try:
-            # Get currently borrowed books count (status = 'Borrowed')
             query = "SELECT COUNT(*) as borrowed FROM borrowed_books WHERE status = 'Borrowed'"
             result = self.db.fetch_one(query)
             self.stats['currently_borrowed'] = result['borrowed'] if result else 0
             
-            # Get OVERDUE books count - includes both status='Overdue' AND borrowed past due date
-            query = """
-                SELECT COUNT(*) as overdue 
-                FROM borrowed_books 
-                WHERE status = 'Overdue'
-            """
+            query = "SELECT COUNT(*) as overdue FROM borrowed_books WHERE status = 'Overdue'"
             result = self.db.fetch_one(query)
             self.stats['overdue_books'] = result['overdue'] if result else 0
             
-            # Get TOTAL FINES from ALL transactions (not just overdue)
             query = "SELECT SUM(fine_amount) as total_fines FROM borrowed_books WHERE fine_amount > 0"
             result = self.db.fetch_one(query)
             self.stats['total_fines'] = float(result['total_fines']) if result and result['total_fines'] else 0.0
             
             print(f"[INFO] Loaded borrowing stats: {self.stats['currently_borrowed']} borrowed, "
                   f"{self.stats['overdue_books']} overdue, ₱{self.stats['total_fines']:.2f} in fines")
-            
         except Exception as e:
             print(f"[ERROR] Failed to load borrowing stats: {e}")
             import traceback
             traceback.print_exc()
     
     def update_stat_cards(self):
-        """Update all stat cards with loaded data"""
-        # Update Total Members card
+        # Refresh all stat card displays
         members_text = f"{self.stats['active_members']} active | {self.stats['inactive_members']} inactive"
         self.update_stat_card(self.total_members_card, members_text)
         
-        # Update Currently Borrowed card
         borrowed_text = f"{self.stats['currently_borrowed']} {'book' if self.stats['currently_borrowed'] == 1 else 'books'}"
         self.update_stat_card(self.currently_borrowed_card, borrowed_text)
         
-        # Update Overdue Books card
         overdue_text = f"{self.stats['overdue_books']} {'book' if self.stats['overdue_books'] == 1 else 'books'}"
         self.update_stat_card(self.overdue_books_card, overdue_text)
         
-        # Update Total Fines card
         fines_text = f"₱{self.stats['total_fines']:.2f}"
         self.update_stat_card(self.total_fines_card, fines_text)
     
     def create_table_section(self, title_text, subtitle_text, headers):
-        """Creates a frame with a title, subtitle, spacing, and a QTableWidget"""
+        # Build styled table container
         container = QWidget()
         container.setStyleSheet("""
             QWidget {
@@ -412,69 +377,47 @@ class ReportsAnalytics(QMainWindow):
         layout.setContentsMargins(20, 20, 20, 20)
         layout.setSpacing(10)
 
-        # Title
         title = QLabel(title_text)
         title.setFont(QFont("Montserrat", 15, QFont.Weight.Bold))
-        title.setStyleSheet("""
-            QWidget {
-                color: black;
-                background-color: white;
-                border: none
-            }
-        """)
+        title.setStyleSheet("color: black; background-color: white; border: none")
         layout.addWidget(title)
         layout.addSpacing(-10)
 
-        # Subtitle
         subtitle = QLabel(subtitle_text)
         subtitle.setFont(QFont("Montserrat", 11))
-        subtitle.setStyleSheet("""
-            QWidget {
-                color: black;           
-                background-color: white;
-                border: none
-            }
-        """)
+        subtitle.setStyleSheet("color: black; background-color: white; border: none")
         layout.addWidget(subtitle)
         layout.addSpacing(10)
 
-        # Table
         table = QTableWidget()
         table.setColumnCount(len(headers))
         table.setHorizontalHeaderLabels(headers)
         table.setFixedSize(685, 400) 
         
-        # Hide the default row number column (vertical header)
         table.verticalHeader().setVisible(False)
         
-        # Configure horizontal header to stretch columns
         header = table.horizontalHeader()
         header.setSectionResizeMode(QHeaderView.ResizeMode.Interactive)
         header.setStretchLastSection(True)
-        header.setSectionsClickable(True)  # Enable header clicking
+        header.setSectionsClickable(True)
 
         if title_text == "Top Borrowers":
-            table.setColumnWidth(0, 50)             # Rank
-            table.setColumnWidth(1, 400)            # Full Name
-            table.setColumnWidth(2, 60)             # Books
-            table.setColumnWidth(3, 50)             # Fine
-        
+            table.setColumnWidth(0, 50)
+            table.setColumnWidth(1, 400)
+            table.setColumnWidth(2, 60)
+            table.setColumnWidth(3, 50)
         elif title_text == "Most Popular Books":
-            table.setColumnWidth(0, 50)             # Rank
-            table.setColumnWidth(1, 400)            # Book Title
-            table.setColumnWidth(2, 50)             # Times Borrowed
+            table.setColumnWidth(0, 50)
+            table.setColumnWidth(1, 400)
+            table.setColumnWidth(2, 50)
 
-        # Table settings
         table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         table.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
         table.setShowGrid(True)
-        
-        # Enable vertical scrollbar when needed
         table.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         table.setVerticalScrollMode(QTableWidget.ScrollMode.ScrollPerPixel)
         
-        # Table-specific stylesheet with black borders and gridlines
         table.setStyleSheet("""
             QTableWidget {
                 gridline-color: black;
@@ -521,7 +464,7 @@ class ReportsAnalytics(QMainWindow):
         return table, container
 
     def load_borrowers_data(self):
-        """Load raw borrowers data from database for sorting"""
+        # Fetch top borrowers raw data
         try:
             query = """
                 SELECT 
@@ -535,16 +478,14 @@ class ReportsAnalytics(QMainWindow):
                 HAVING books_borrowed > 0
                 ORDER BY books_borrowed DESC, total_fines DESC
             """
-            
             self.top_borrowers_data = self.db.fetch_all(query) or []
             print(f"[INFO] Loaded {len(self.top_borrowers_data)} borrowers for sorting")
-            
         except Exception as e:
             print(f"[ERROR] Failed to load borrowers data: {e}")
             self.top_borrowers_data = []
     
     def load_popular_books_data(self):
-        """Load raw popular books data from database for sorting"""
+        # Fetch popular books raw data
         try:
             query = """
                 SELECT 
@@ -557,206 +498,135 @@ class ReportsAnalytics(QMainWindow):
                 HAVING times_borrowed > 0
                 ORDER BY times_borrowed DESC
             """
-            
             self.popular_books_data = self.db.fetch_all(query) or []
             print(f"[INFO] Loaded {len(self.popular_books_data)} popular books for sorting")
-            
         except Exception as e:
             print(f"[ERROR] Failed to load popular books data: {e}")
             self.popular_books_data = []
 
     def handle_top_borrowers_header_click(self, logical_index):
-        """Handle header click for Top Borrowers table sorting"""
-        try:
-            # Skip sorting for Rank column (index 0) since it's derived
-            if logical_index == 0:
-                return
-                
-            if self.top_borrowers_sort_column == logical_index:
-                # Toggle sort order
-                self.top_borrowers_sort_order = Qt.SortOrder.DescendingOrder if self.top_borrowers_sort_order == Qt.SortOrder.AscendingOrder else Qt.SortOrder.AscendingOrder
-            else:
-                # New column, start with ascending
-                self.top_borrowers_sort_column = logical_index
-                self.top_borrowers_sort_order = Qt.SortOrder.AscendingOrder
-            
-            self.display_sorted_borrowers()
-            
-        except Exception as e:
-            print(f"[ERROR] Top borrowers header click error: {e}")
+        # Sort borrowers table by clicked column
+        if logical_index == 0: return
+        if self.top_borrowers_sort_column == logical_index:
+            self.top_borrowers_sort_order = Qt.SortOrder.DescendingOrder if self.top_borrowers_sort_order == Qt.SortOrder.AscendingOrder else Qt.SortOrder.AscendingOrder
+        else:
+            self.top_borrowers_sort_column = logical_index
+            self.top_borrowers_sort_order = Qt.SortOrder.AscendingOrder
+        self.display_sorted_borrowers()
 
     def handle_popular_books_header_click(self, logical_index):
-        """Handle header click for Popular Books table sorting"""
-        try:
-            # Skip sorting for Rank column (index 0) since it's derived
-            if logical_index == 0:
-                return
-                
-            if self.popular_books_sort_column == logical_index:
-                # Toggle sort order
-                self.popular_books_sort_order = Qt.SortOrder.DescendingOrder if self.popular_books_sort_order == Qt.SortOrder.AscendingOrder else Qt.SortOrder.AscendingOrder
-            else:
-                # New column, start with ascending
-                self.popular_books_sort_column = logical_index
-                self.popular_books_sort_order = Qt.SortOrder.AscendingOrder
-            
-            self.display_sorted_popular_books()
-            
-        except Exception as e:
-            print(f"[ERROR] Popular books header click error: {e}")
+        # Sort books table by clicked column
+        if logical_index == 0: return
+        if self.popular_books_sort_column == logical_index:
+            self.popular_books_sort_order = Qt.SortOrder.DescendingOrder if self.popular_books_sort_order == Qt.SortOrder.AscendingOrder else Qt.SortOrder.AscendingOrder
+        else:
+            self.popular_books_sort_column = logical_index
+            self.popular_books_sort_order = Qt.SortOrder.AscendingOrder
+        self.display_sorted_popular_books()
 
     def display_sorted_borrowers(self):
-        """Display sorted borrowers data in table"""
-        try:
-            if not self.top_borrowers_data:
-                self.top_borrowers_table.setRowCount(0)
-                return
-            
-            # Create a copy to sort
-            sorted_data = self.top_borrowers_data.copy()
-            
-            # Map column indices to data keys
-            column_keys = {
-                1: 'full_name',      # Full Name
-                2: 'books_borrowed', # Books
-                3: 'total_fines'     # Fine
-            }
-            
-            if self.top_borrowers_sort_column in column_keys:
-                sort_key = column_keys[self.top_borrowers_sort_column]
-                
-                def sort_value(item):
-                    value = item.get(sort_key)
-                    if sort_key == 'full_name':
-                        return str(value).lower() if value else ''
-                    elif sort_key == 'books_borrowed':
-                        return int(value) if value else 0
-                    elif sort_key == 'total_fines':
-                        return float(value) if value else 0.0
-                    return value
-                
-                sorted_data.sort(
-                    key=sort_value,
-                    reverse=(self.top_borrowers_sort_order == Qt.SortOrder.DescendingOrder)
-                )
-            
-            # Limit to top 5 after sorting
-            display_data = sorted_data[:5]
-            self.top_borrowers_table.setRowCount(len(display_data))
-            
-            for row, borrower in enumerate(display_data):
-                rank = row + 1
-                
-                # Rank column
-                item = QTableWidgetItem(str(rank))
-                item.setFont(QFont("Montserrat", 10))
-                item.setForeground(QColor("#000000"))
-                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.top_borrowers_table.setItem(row, 0, item)
-                
-                # Full Name column
-                item = QTableWidgetItem(str(borrower['full_name']))
-                item.setFont(QFont("Montserrat", 10))
-                item.setForeground(QColor("#000000"))
-                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.top_borrowers_table.setItem(row, 1, item)
-                
-                # Books borrowed column
-                item = QTableWidgetItem(str(borrower['books_borrowed']))
-                item.setFont(QFont("Montserrat", 10))
-                item.setForeground(QColor("#000000"))
-                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.top_borrowers_table.setItem(row, 2, item)
-                
-                # Total fines column
-                fines = float(borrower['total_fines']) if borrower['total_fines'] else 0.0
-                item = QTableWidgetItem(f"₱{fines:.2f}")
-                item.setFont(QFont("Montserrat", 10))
-                item.setForeground(QColor("#000000"))
-                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.top_borrowers_table.setItem(row, 3, item)
-            
-            print(f"[INFO] Displayed {len(display_data)} sorted borrowers")
-            
-        except Exception as e:
-            print(f"[ERROR] Display sorted borrowers error: {e}")
+        # Render sorted top borrowers (top 5)
+        if not self.top_borrowers_data:
             self.top_borrowers_table.setRowCount(0)
+            return
+        
+        sorted_data = self.top_borrowers_data.copy()
+        column_keys = {1: 'full_name', 2: 'books_borrowed', 3: 'total_fines'}
+        
+        if self.top_borrowers_sort_column in column_keys:
+            sort_key = column_keys[self.top_borrowers_sort_column]
+            def sort_value(item):
+                value = item.get(sort_key)
+                if sort_key == 'full_name': return str(value).lower() if value else ''
+                elif sort_key == 'books_borrowed': return int(value) if value else 0
+                elif sort_key == 'total_fines': return float(value) if value else 0.0
+                return value
+            sorted_data.sort(key=sort_value, reverse=(self.top_borrowers_sort_order == Qt.SortOrder.DescendingOrder))
+        
+        display_data = sorted_data[:5]
+        self.top_borrowers_table.setRowCount(len(display_data))
+        
+        for row, borrower in enumerate(display_data):
+            rank = row + 1
+            item = QTableWidgetItem(str(rank))
+            item.setFont(QFont("Montserrat", 10))
+            item.setForeground(QColor("#000000"))
+            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.top_borrowers_table.setItem(row, 0, item)
+            
+            item = QTableWidgetItem(str(borrower['full_name']))
+            item.setFont(QFont("Montserrat", 10))
+            item.setForeground(QColor("#000000"))
+            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.top_borrowers_table.setItem(row, 1, item)
+            
+            item = QTableWidgetItem(str(borrower['books_borrowed']))
+            item.setFont(QFont("Montserrat", 10))
+            item.setForeground(QColor("#000000"))
+            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.top_borrowers_table.setItem(row, 2, item)
+            
+            fines = float(borrower['total_fines']) if borrower['total_fines'] else 0.0
+            item = QTableWidgetItem(f"₱{fines:.2f}")
+            item.setFont(QFont("Montserrat", 10))
+            item.setForeground(QColor("#000000"))
+            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.top_borrowers_table.setItem(row, 3, item)
+        
+        print(f"[INFO] Displayed {len(display_data)} sorted borrowers")
     
     def display_sorted_popular_books(self):
-        """Display sorted popular books data in table"""
-        try:
-            if not self.popular_books_data:
-                self.popular_books_table.setRowCount(0)
-                return
-            
-            # Create a copy to sort
-            sorted_data = self.popular_books_data.copy()
-            
-            # Map column indices to data keys
-            column_keys = {
-                1: 'title',             # Book Title
-                2: 'times_borrowed'     # Times Borrowed
-            }
-            
-            if self.popular_books_sort_column in column_keys:
-                sort_key = column_keys[self.popular_books_sort_column]
-                
-                def sort_value(item):
-                    value = item.get(sort_key)
-                    if sort_key == 'title':
-                        return str(value).lower() if value else ''
-                    elif sort_key == 'times_borrowed':
-                        return int(value) if value else 0
-                    return value
-                
-                sorted_data.sort(
-                    key=sort_value,
-                    reverse=(self.popular_books_sort_order == Qt.SortOrder.DescendingOrder)
-                )
-            
-            # Limit to top 5 after sorting
-            display_data = sorted_data[:5]
-            self.popular_books_table.setRowCount(len(display_data))
-            
-            for row, book in enumerate(display_data):
-                rank = row + 1
-                
-                # Rank column
-                item = QTableWidgetItem(str(rank))
-                item.setFont(QFont("Montserrat", 10))
-                item.setForeground(QColor("#000000"))
-                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.popular_books_table.setItem(row, 0, item)
-                
-                # Book title column
-                item = QTableWidgetItem(str(book['title']))
-                item.setFont(QFont("Montserrat", 10))
-                item.setForeground(QColor("#000000"))
-                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.popular_books_table.setItem(row, 1, item)
-                
-                # Times borrowed column
-                item = QTableWidgetItem(str(book['times_borrowed']))
-                item.setFont(QFont("Montserrat", 10))
-                item.setForeground(QColor("#000000"))
-                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.popular_books_table.setItem(row, 2, item)
-            
-            print(f"[INFO] Displayed {len(display_data)} sorted popular books")
-            
-        except Exception as e:
-            print(f"[ERROR] Display sorted popular books error: {e}")
+        # Render sorted popular books (top 5)
+        if not self.popular_books_data:
             self.popular_books_table.setRowCount(0)
+            return
+        
+        sorted_data = self.popular_books_data.copy()
+        column_keys = {1: 'title', 2: 'times_borrowed'}
+        
+        if self.popular_books_sort_column in column_keys:
+            sort_key = column_keys[self.popular_books_sort_column]
+            def sort_value(item):
+                value = item.get(sort_key)
+                if sort_key == 'title': return str(value).lower() if value else ''
+                elif sort_key == 'times_borrowed': return int(value) if value else 0
+                return value
+            sorted_data.sort(key=sort_value, reverse=(self.popular_books_sort_order == Qt.SortOrder.DescendingOrder))
+        
+        display_data = sorted_data[:5]
+        self.popular_books_table.setRowCount(len(display_data))
+        
+        for row, book in enumerate(display_data):
+            rank = row + 1
+            item = QTableWidgetItem(str(rank))
+            item.setFont(QFont("Montserrat", 10))
+            item.setForeground(QColor("#000000"))
+            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.popular_books_table.setItem(row, 0, item)
+            
+            item = QTableWidgetItem(str(book['title']))
+            item.setFont(QFont("Montserrat", 10))
+            item.setForeground(QColor("#000000"))
+            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.popular_books_table.setItem(row, 1, item)
+            
+            item = QTableWidgetItem(str(book['times_borrowed']))
+            item.setFont(QFont("Montserrat", 10))
+            item.setForeground(QColor("#000000"))
+            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.popular_books_table.setItem(row, 2, item)
+        
+        print(f"[INFO] Displayed {len(display_data)} sorted popular books")
     
     def go_back_to_dashboard(self):
-        """Go back to dashboard"""
+        # Close and return to main screen
         self.close()
     
     def show_fullscreen(self):
-        """Show window maximized"""
+        # Maximize window on open
         self.setWindowState(Qt.WindowState.WindowMaximized)
         self.showMaximized()
     
     def closeEvent(self, event):
-        """Handle window close event"""
+        # Confirm window close
         event.accept()
