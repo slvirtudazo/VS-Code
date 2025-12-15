@@ -1,6 +1,6 @@
 # curatel_lms/ui/circulation_dialogs.py
 
-# Circulation dialogs: base + add/view/update/delete transaction UIs
+# Provides dialog interfaces for adding, viewing, updating, and deleting transactions
 
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QWidget,
@@ -9,9 +9,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, QDate
 from PyQt6.QtGui import QFont
 from datetime import datetime
-
 from curatel_lms.config import AppConfig
-
 
 class BaseTransactionDialog(QDialog):
     # Base dialog for transaction CRUD with shared UI/logic
@@ -53,7 +51,6 @@ class BaseTransactionDialog(QDialog):
         label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         label.setStyleSheet(AppConfig.STYLES['dialog_header_text'])
         layout.addWidget(label)
-        
         return header
     
     def _create_form_container(self, height=None):
@@ -89,7 +86,6 @@ class BaseTransactionDialog(QDialog):
         cancel_btn.setStyleSheet(AppConfig.get_red_button_style())
         cancel_btn.clicked.connect(self.reject)
         layout.addWidget(cancel_btn)
-        
         layout.addStretch()
         return layout
     
@@ -105,7 +101,6 @@ class BaseTransactionDialog(QDialog):
         if date_value is None or str(date_value).strip().lower() in ('none', 'null', ''):
             return ""
         return str(date_value)
-
 
 class AddBorrowDialog(BaseTransactionDialog):
     # Dialog to create new borrow transaction
@@ -245,7 +240,6 @@ class AddBorrowDialog(BaseTransactionDialog):
             print(f"[ERROR] Add transaction failed: {e}")
             QMessageBox.critical(self, "Error", f"An error occurred:\n{str(e)}")
 
-
 class ViewBorrowDialog(BaseTransactionDialog):
     # Read-only dialog to show transaction details
     
@@ -331,7 +325,6 @@ class ViewBorrowDialog(BaseTransactionDialog):
         row_layout.addWidget(value, 2)
         
         layout.addWidget(row)
-
 
 class UpdateBorrowDialog(BaseTransactionDialog):
     # Dialog to edit return date, status, and fine
@@ -496,7 +489,6 @@ class UpdateBorrowDialog(BaseTransactionDialog):
         except Exception as e:
             print(f"[ERROR] Update transaction failed: {e}")
             QMessageBox.critical(self, "Error", f"An error occurred:\n{str(e)}")
-
 
 class ConfirmDeleteBorrowDialog(QDialog):
     # Confirm deletion of a transaction

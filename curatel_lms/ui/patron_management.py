@@ -1,6 +1,6 @@
 # curatel_lms/ui/patron_management.py
-# Patron Management Module - Main Window: manages library member records with search, filtering, CRUD, sortable table, modal dialogs, and status indicators.
-# OOP: QMainWindow subclass with db composition, encapsulated logic, private methods, and single-responsibility design.
+
+# Manages library member records with search, filtering, sorting, status indicators, and CRUD actions
 
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
@@ -9,13 +9,11 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QColor
-
 from curatel_lms.config import AppConfig
 from curatel_lms.ui.patron_dialogs import (
     AddMemberDialog, ViewMemberDialog, UpdateMemberDialog, 
     ConfirmDeleteMemberDialog
 )
-
 
 class PatronManagement(QMainWindow):
     # Main window for managing library members: displays sortable/filterable table, supports CRUD via modal dialogs, tracks selection, and uses db for data.

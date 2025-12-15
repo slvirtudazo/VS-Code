@@ -1,6 +1,6 @@
 # curatel_lms/ui/catalog_dialogs.py
 
-# Catalog dialogs for book CRUD operations using OOP and template method pattern
+# Handles book add, view, update, and delete dialogs using structured OOP patterns
 
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QWidget,
@@ -9,9 +9,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 from datetime import datetime
-
 from curatel_lms.config import AppConfig
-
 
 class BaseBookDialog(QDialog):
     # Base dialog for book operations: config, header, form, validation
@@ -100,7 +98,6 @@ class BaseBookDialog(QDialog):
             return f"BK-{last_num + 1:03d}"
         return "BK-001"
 
-
 class AddBookDialog(BaseBookDialog):
     # Dialog to add new books with auto ID and validation
     
@@ -114,36 +111,45 @@ class AddBookDialog(BaseBookDialog):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 30)
         layout.setSpacing(0)
+
         header = self._create_header("ADD BOOK")
         layout.addWidget(header)
         layout.addSpacing(40)
+
         form_container = self._create_form_container()
         form_layout = QVBoxLayout(form_container)
         form_layout.setContentsMargins(30, 10, 30, 30)
         form_layout.setSpacing(10)
+
         self.title_input = QLineEdit()
         self.title_input.setFixedSize(AppConfig.FIELD_WIDTH, AppConfig.FIELD_HEIGHT)
         self.title_input.setStyleSheet(AppConfig.STYLES['input'])
         self._add_field(form_layout, "Title", self.title_input)
+
         self.author_input = QLineEdit()
         self.author_input.setFixedSize(AppConfig.FIELD_WIDTH, AppConfig.FIELD_HEIGHT)
         self.author_input.setStyleSheet(AppConfig.STYLES['input'])
         self._add_field(form_layout, "Author", self.author_input)
+
         self.isbn_input = QLineEdit()
         self.isbn_input.setFixedSize(AppConfig.FIELD_WIDTH, AppConfig.FIELD_HEIGHT)
         self.isbn_input.setStyleSheet(AppConfig.STYLES['input'])
         self._add_field(form_layout, "ISBN", self.isbn_input)
+
         self.category_combo = QComboBox()
         self.category_combo.addItems(AppConfig.BOOK_CATEGORIES)
         self.category_combo.setFixedSize(AppConfig.FIELD_WIDTH, AppConfig.FIELD_HEIGHT)
         self.category_combo.setStyleSheet(AppConfig.STYLES['combo_with_dropdown'])
         self._add_field(form_layout, "Category", self.category_combo)
+
         container_layout = QHBoxLayout()
         container_layout.addStretch()
         container_layout.addWidget(form_container)
         container_layout.addStretch()
+
         layout.addLayout(container_layout)
         layout.addSpacing(50)
+
         buttons = self._create_buttons("Save", self._save_book)
         layout.addLayout(buttons)
     
@@ -174,7 +180,6 @@ class AddBookDialog(BaseBookDialog):
             print(f"[ERROR] Add book failed: {e}")
             QMessageBox.critical(self, "Error", f"An error occurred while adding book:\n{str(e)}")
 
-
 class ViewBookDialog(BaseBookDialog):
     # Read-only dialog showing book details
     
@@ -188,29 +193,36 @@ class ViewBookDialog(BaseBookDialog):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 30)
         layout.setSpacing(0)
+
         header = self._create_header("BOOK INFORMATION")
         layout.addWidget(header)
         layout.addSpacing(40)
+
         info_container = self._create_form_container()
         info_layout = QVBoxLayout(info_container)
         info_layout.setContentsMargins(50, 20, 50, 20)
         info_layout.setSpacing(20)
+
         self._add_info_field(info_layout, "Book ID:", self.book_data.get('book_id', ''))
         self._add_info_field(info_layout, "Title:", self.book_data.get('title', ''))
         self._add_info_field(info_layout, "Author:", self.book_data.get('author', ''))
         self._add_info_field(info_layout, "ISBN:", self.book_data.get('isbn', ''))
         self._add_info_field(info_layout, "Category:", self.book_data.get('category', ''))
         self._add_info_field(info_layout, "Status:", self.book_data.get('status', ''))
+
         added_at = self._format_date(self.book_data.get('added_at'))
         updated_at = self._format_date(self.book_data.get('updated_at'))
         self._add_info_field(info_layout, "Added At:", added_at)
         self._add_info_field(info_layout, "Updated At:", updated_at)
+
         container_layout = QHBoxLayout()
         container_layout.addStretch()
         container_layout.addWidget(info_container)
         container_layout.addStretch()
+
         layout.addLayout(container_layout)
         layout.addSpacing(40)
+
         button_layout = QHBoxLayout()
         button_layout.addStretch()
         close_btn = QPushButton("Close")
@@ -219,6 +231,7 @@ class ViewBookDialog(BaseBookDialog):
         close_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         close_btn.setStyleSheet(AppConfig.get_red_button_style())
         close_btn.clicked.connect(self.accept)
+
         button_layout.addWidget(close_btn)
         button_layout.addStretch()
         layout.addLayout(button_layout)
@@ -230,13 +243,16 @@ class ViewBookDialog(BaseBookDialog):
         row_layout = QHBoxLayout(row)
         row_layout.setContentsMargins(0, 0, 0, 0)
         row_layout.setSpacing(100)
+
         label = QLabel(label_text)
         label.setStyleSheet(AppConfig.STYLES['dialog_label'])
         label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+
         value = QLabel(str(value_text))
         value.setStyleSheet(AppConfig.STYLES['info_value'])
         value.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
         value.setWordWrap(True)
+
         row_layout.addWidget(label, 1)
         row_layout.addWidget(value, 2)
         layout.addWidget(row)
@@ -246,7 +262,6 @@ class ViewBookDialog(BaseBookDialog):
         if date_value:
             return str(date_value).split()[0]
         return ''
-
 
 class UpdateBookDialog(BaseBookDialog):
     # Dialog to edit existing book info (ID unchanged)
@@ -261,39 +276,48 @@ class UpdateBookDialog(BaseBookDialog):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 30)
         layout.setSpacing(0)
+
         header = self._create_header("UPDATE BOOK")
         layout.addWidget(header)
         layout.addSpacing(40)
+
         form_container = self._create_form_container()
         form_layout = QVBoxLayout(form_container)
         form_layout.setContentsMargins(30, 10, 30, 30)
+
         self.title_input = QLineEdit()
         self.title_input.setText(self.book_data.get('title', ''))
         self.title_input.setFixedSize(AppConfig.FIELD_WIDTH, AppConfig.FIELD_HEIGHT)
         self.title_input.setStyleSheet(AppConfig.STYLES['input'])
         self._add_field(form_layout, "Title", self.title_input)
+
         self.author_input = QLineEdit()
         self.author_input.setText(self.book_data.get('author', ''))
         self.author_input.setFixedSize(AppConfig.FIELD_WIDTH, AppConfig.FIELD_HEIGHT)
         self.author_input.setStyleSheet(AppConfig.STYLES['input'])
         self._add_field(form_layout, "Author", self.author_input)
+
         self.isbn_input = QLineEdit()
         self.isbn_input.setText(self.book_data.get('isbn', ''))
         self.isbn_input.setFixedSize(AppConfig.FIELD_WIDTH, AppConfig.FIELD_HEIGHT)
         self.isbn_input.setStyleSheet(AppConfig.STYLES['input'])
         self._add_field(form_layout, "ISBN", self.isbn_input)
+
         self.category_combo = QComboBox()
         self.category_combo.addItems(AppConfig.BOOK_CATEGORIES)
         self.category_combo.setCurrentText(self.book_data.get('category', 'Fiction'))
         self.category_combo.setFixedSize(AppConfig.FIELD_WIDTH, AppConfig.FIELD_HEIGHT)
         self.category_combo.setStyleSheet(AppConfig.STYLES['combo_with_dropdown'])
         self._add_field(form_layout, "Category", self.category_combo)
+
         container_layout = QHBoxLayout()
         container_layout.addStretch()
         container_layout.addWidget(form_container)
         container_layout.addStretch()
+
         layout.addLayout(container_layout)
         layout.addSpacing(50)
+
         buttons = self._create_buttons("Update", self._update_book)
         layout.addLayout(buttons)
     
@@ -324,7 +348,6 @@ class UpdateBookDialog(BaseBookDialog):
             print(f"[ERROR] Update book failed: {e}")
             QMessageBox.critical(self, "Error", f"An error occurred while updating book:\n{str(e)}")
 
-
 class ConfirmDeleteDialog(QDialog):
     # Simple yes/no dialog to confirm book deletion
     
@@ -350,22 +373,28 @@ class ConfirmDeleteDialog(QDialog):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 30)
         layout.setSpacing(0)
+
         header = QWidget()
         header.setFixedHeight(80)
         header.setStyleSheet(AppConfig.STYLES['dialog_header'])
+
         header_layout = QHBoxLayout(header)
         header_layout.setContentsMargins(0, 0, 0, 0)
+
         header_label = QLabel("CONFIRM DELETE BOOK")
         header_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         header_label.setStyleSheet(AppConfig.STYLES['dialog_header_text'])
         header_layout.addWidget(header_label)
+
         layout.addWidget(header)
         layout.addSpacing(40)
+        
         frame = QWidget()
         frame.setFixedSize(600, 250)
         frame.setStyleSheet(f"background-color: {AppConfig.COLORS['bg_dialog']}; border: none;")
         frame_layout = QVBoxLayout(frame)
         frame_layout.setContentsMargins(30, 20, 30, 20)
+
         message = QLabel(f"Are you sure you want to permanently delete\n'{self.book_title}'?")
         message.setAlignment(Qt.AlignmentFlag.AlignCenter)
         message.setWordWrap(True)
@@ -378,25 +407,31 @@ class ConfirmDeleteDialog(QDialog):
         frame_layout.addStretch()
         frame_layout.addWidget(message)
         frame_layout.addStretch()
+
         center_layout = QHBoxLayout()
         center_layout.addStretch()
         center_layout.addWidget(frame)
         center_layout.addStretch()
+
         layout.addLayout(center_layout)
         layout.addSpacing(40)
+
         buttons_layout = QHBoxLayout()
         buttons_layout.addStretch()
         buttons_layout.setSpacing(30)
+
         yes_btn = QPushButton("Yes")
         yes_btn.setFixedSize(150, AppConfig.BUTTON_HEIGHT_LARGE)
         yes_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         yes_btn.setStyleSheet(AppConfig.get_red_button_style())
         yes_btn.clicked.connect(self.accept)
+
         no_btn = QPushButton("No")
         no_btn.setFixedSize(150, AppConfig.BUTTON_HEIGHT_LARGE)
         no_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         no_btn.setStyleSheet(AppConfig.get_green_button_style())
         no_btn.clicked.connect(self.reject)
+        
         buttons_layout.addWidget(yes_btn)
         buttons_layout.addWidget(no_btn)
         buttons_layout.addStretch()

@@ -1,5 +1,6 @@
 # curatel_lms/ui/login_screen.py
-# Login screen with auth and password reset
+
+# Provides user authentication and password recovery functionality
 
 import os
 import re
@@ -27,7 +28,7 @@ class ResetPasswordDialog(QDialog):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(40, 30, 40, 40)
     
-        # Instructions
+        # Reset password instructions
         subtitle = QLabel(
             "Enter your registered email address to\n"
             "receive password reset instructions"

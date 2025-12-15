@@ -1,6 +1,6 @@
 # curatel_lms/main.py
 
-# App entry point: sets up GUI, DB, and fonts
+# Starts the application and initializes the GUI, database connection, and fonts
 
 import sys
 import os

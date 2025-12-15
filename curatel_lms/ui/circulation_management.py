@@ -1,5 +1,6 @@
 # curatel_lms/ui/circulation_management.py
-# Circulation Management Module - Main Window: UI for library borrowing transactions with search, filter, CRUD, sorting, and status sync.
+
+# Handles borrowing transactions with search, filtering, sorting, CRUD operations, and status updates
 
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
@@ -8,12 +9,10 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QColor
-
 from curatel_lms.config import AppConfig
 from curatel_lms.ui.circulation_dialogs import (
     AddBorrowDialog, ViewBorrowDialog, UpdateBorrowDialog, ConfirmDeleteBorrowDialog
 )
-
 
 class CirculationManagement(QMainWindow):
     # Main window for managing library borrowing transactions with a sortable, filterable table and CRUD operations.
@@ -79,6 +78,7 @@ class CirculationManagement(QMainWindow):
 
         header_layout.addLayout(header_text)
         header_layout.addStretch()
+
         return header_layout
     
     def _create_search_section(self):
@@ -97,6 +97,7 @@ class CirculationManagement(QMainWindow):
         self.status_combo = self._create_filter_combo(["All"] + AppConfig.TRANSACTION_STATUSES)
         search_layout.addWidget(self.status_combo)
         search_layout.addStretch()
+
         return search_layout
     
     def _create_filter_label(self, text):
@@ -104,6 +105,7 @@ class CirculationManagement(QMainWindow):
         label = QLabel(text)
         label.setFont(QFont("Montserrat", 10))
         label.setStyleSheet(f"color: {AppConfig.COLORS['text_dark']};")
+
         return label
     
     def _create_filter_combo(self, items):
@@ -113,6 +115,7 @@ class CirculationManagement(QMainWindow):
         combo.setStyleSheet(AppConfig.STYLES['combo'])
         combo.setFixedSize(120, AppConfig.SEARCH_HEIGHT)
         combo.currentTextChanged.connect(self._filter_borrows)
+
         return combo
     
     def _create_borrows_table(self):

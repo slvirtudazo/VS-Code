@@ -1,6 +1,6 @@
 # curatel_lms/ui/dashboard.py
 
-# Dashboard module: main navigation hub for library system
+# Serves as the main navigation center for all library system features
 
 import os
 from PyQt6.QtWidgets import (
@@ -9,9 +9,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QPixmap
-
 from curatel_lms.config import AppConfig
-
 
 class Dashboard(QMainWindow):
     # Main dashboard with navigation to all management modules

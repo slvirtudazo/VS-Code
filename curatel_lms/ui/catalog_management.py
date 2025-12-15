@@ -1,6 +1,6 @@
 # curatel_lms/ui/catalog_management.py
 
-# Catalog management UI: search, filter, sort, and CRUD for library books
+# Manages library books through search, filter, sort, and full CRUD operations
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
@@ -9,12 +9,10 @@ from PyQt6.QtWidgets import (
     QComboBox, QMessageBox, QHeaderView, QAbstractItemView, QDialog
 )
 from PyQt6.QtGui import QFont, QColor
-
 from curatel_lms.config import AppConfig
 from curatel_lms.ui.catalog_dialogs import (
     AddBookDialog, ViewBookDialog, UpdateBookDialog, ConfirmDeleteDialog
 )
-
 
 class CatalogManagement(QMainWindow):
     # Main window for book catalog management with table, filters, and actions

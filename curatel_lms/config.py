@@ -1,6 +1,6 @@
 # curatel_lms/config.py
 
-# Central app config: UI dims, colors, styles, DB settings
+# Stores centralized settings for UI layout, colors, styles, and database configuration
 
 class AppConfig:
     # App-wide constants for UI, colors, styles, and settings
@@ -33,7 +33,7 @@ class AppConfig:
     BUTTON_WIDTH_WIDE = 150
     BUTTON_WIDTH_EXTRA_WIDE = 180
     BUTTON_HEIGHT = 40
-    BUTTON_HEIGHT_LARGE = 60  # Dialog action buttons
+    BUTTON_HEIGHT_LARGE = 60        # Dialog action buttons
     
     # Search bar dimensions
     SEARCH_HEIGHT = 40

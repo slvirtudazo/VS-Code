@@ -1,5 +1,6 @@
 # curatel_lms/ui/library_reports.py
-# Library analytics dashboard: stats, trends, and live database insights
+
+# Displays system statistics, usage trends, and real-time database insights
 
 from PyQt6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
                              QPushButton, QTableWidget, QTableWidgetItem, QHeaderView)
@@ -239,7 +240,6 @@ class ReportsAnalytics(QMainWindow):
         if result and result['total_fines']:
             return float(result['total_fines'])
         return 0.0
-
     
     def create_stat_card(self, title, value):
         # Build reusable stat card widget
@@ -278,7 +278,6 @@ class ReportsAnalytics(QMainWindow):
             background-color: transparent;
             border: none;
         """)
-        
         return card
     
     def update_stat_card(self, card, value):

@@ -1,5 +1,6 @@
 # curatel_lms/ui/patron_dialogs.py
-# Patron dialogs: add, view, update, delete library members
+
+# Provides dialogs for adding, viewing, updating, and deleting library members
 
 import re
 from PyQt6.QtWidgets import (
@@ -9,9 +10,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 from datetime import datetime
-
 from curatel_lms.config import AppConfig
-
 
 class BaseMemberDialog(QDialog):
     # Base class for member dialogs: shared layout, validation, DB ops
@@ -43,12 +42,15 @@ class BaseMemberDialog(QDialog):
         header = QWidget()
         header.setFixedHeight(80)
         header.setStyleSheet(AppConfig.STYLES['dialog_header'])
+
         layout = QHBoxLayout(header)
         layout.setContentsMargins(0, 0, 0, 0)
+
         label = QLabel(text)
         label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         label.setStyleSheet(AppConfig.STYLES['dialog_header_text'])
         layout.addWidget(label)
+
         return header
     
     def _create_form_container(self, height=None):
@@ -57,6 +59,7 @@ class BaseMemberDialog(QDialog):
         container = QWidget()
         container.setFixedSize(AppConfig.FORM_WIDTH, container_height)
         container.setStyleSheet(AppConfig.STYLES['form_container'])
+
         return container
     
     def _add_field(self, layout, label_text, widget):
@@ -64,6 +67,7 @@ class BaseMemberDialog(QDialog):
         label = QLabel(label_text)
         label.setStyleSheet(AppConfig.STYLES['dialog_label'])
         label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
         layout.addWidget(label)
         layout.addSpacing(-20)
         layout.addWidget(widget)
@@ -73,17 +77,21 @@ class BaseMemberDialog(QDialog):
         layout = QHBoxLayout()
         layout.setSpacing(30)
         layout.addStretch()
+
         primary_btn = QPushButton(primary_text)
         primary_btn.setFixedSize(AppConfig.BUTTON_WIDTH_EXTRA_WIDE, AppConfig.BUTTON_HEIGHT_LARGE)
         primary_btn.setStyleSheet(AppConfig.get_green_button_style())
         primary_btn.clicked.connect(primary_callback)
         layout.addWidget(primary_btn)
+
         cancel_btn = QPushButton("Cancel")
         cancel_btn.setFixedSize(AppConfig.BUTTON_WIDTH_EXTRA_WIDE, AppConfig.BUTTON_HEIGHT_LARGE)
         cancel_btn.setStyleSheet(AppConfig.get_red_button_style())
         cancel_btn.clicked.connect(self.reject)
+
         layout.addWidget(cancel_btn)
         layout.addStretch()
+
         return layout
     
     def _validate_inputs(self, full_name, email, mobile):
@@ -110,7 +118,6 @@ class BaseMemberDialog(QDialog):
             return f"MEM-{last_num + 1:03d}"
         return "MEM-001"
 
-
 class AddMemberDialog(BaseMemberDialog):
     # Dialog to register new library members
     
@@ -130,25 +137,31 @@ class AddMemberDialog(BaseMemberDialog):
         layout.addWidget(header)
         layout.addSpacing(30)
         form_container = self._create_form_container(AppConfig.FORM_HEIGHT_COMPACT)
+
         form_layout = QVBoxLayout(form_container)
         form_layout.setContentsMargins(30, 10, 30, 50)
         form_layout.setSpacing(0)
+
         self.fullname_input = QLineEdit()
         self.fullname_input.setFixedSize(AppConfig.FIELD_WIDTH, AppConfig.FIELD_HEIGHT)
         self.fullname_input.setStyleSheet(AppConfig.STYLES['input'])
         self._add_field(form_layout, "Full Name", self.fullname_input)
+
         self.email_input = QLineEdit()
         self.email_input.setFixedSize(AppConfig.FIELD_WIDTH, AppConfig.FIELD_HEIGHT)
         self.email_input.setStyleSheet(AppConfig.STYLES['input'])
         self._add_field(form_layout, "Email", self.email_input)
+
         self.mobile_input = QLineEdit()
         self.mobile_input.setFixedSize(AppConfig.FIELD_WIDTH, AppConfig.FIELD_HEIGHT)
         self.mobile_input.setStyleSheet(AppConfig.STYLES['input'])
         self._add_field(form_layout, "Mobile Number (+63)", self.mobile_input)
+
         container_layout = QHBoxLayout()
         container_layout.addStretch()
         container_layout.addWidget(form_container)
         container_layout.addStretch()
+
         layout.addLayout(container_layout)
         layout.addSpacing(30)
         buttons = self._create_buttons("Save", self._save_member)
@@ -186,7 +199,6 @@ class AddMemberDialog(BaseMemberDialog):
             print(f"[ERROR] Add member failed: {e}")
             QMessageBox.critical(self, "Error", f"An error occurred while adding member:\n{str(e)}")
 
-
 class ViewMemberDialog(BaseMemberDialog):
     # Read-only display of member details
     
@@ -204,33 +216,41 @@ class ViewMemberDialog(BaseMemberDialog):
         layout.addWidget(header)
         layout.addSpacing(40)
         info_container = self._create_form_container()
+
         info_layout = QVBoxLayout(info_container)
         info_layout.setContentsMargins(50, 20, 50, 20)
         info_layout.setSpacing(20)
+
         self._add_info_field(info_layout, "Member ID:", self.member_data.get('member_id', ''))
         self._add_info_field(info_layout, "Full Name:", self.member_data.get('full_name', ''))
         self._add_info_field(info_layout, "Email:", self.member_data.get('email', ''))
         self._add_info_field(info_layout, "Mobile Number:", self.member_data.get('mobile_number', ''))
         self._add_info_field(info_layout, "Status:", self.member_data.get('status', ''))
         self._add_info_field(info_layout, "Borrowed Books:", self.member_data.get('borrowed_books', '0'))
+
         added_at = self._format_date(self.member_data.get('added_at'))
         updated_at = self._format_date(self.member_data.get('updated_at'))
         self._add_info_field(info_layout, "Added At:", added_at)
         self._add_info_field(info_layout, "Updated At:", updated_at)
+
         container_layout = QHBoxLayout()
         container_layout.addStretch()
         container_layout.addWidget(info_container)
         container_layout.addStretch()
+
         layout.addLayout(container_layout)
         layout.addSpacing(40)
+
         button_layout = QHBoxLayout()
         button_layout.addStretch()
+
         close_btn = QPushButton("Close")
         close_btn.setFixedSize(150, AppConfig.BUTTON_HEIGHT_LARGE)
         close_btn.setFont(QFont("Montserrat", 18, QFont.Weight.Bold))
         close_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         close_btn.setStyleSheet(AppConfig.get_red_button_style())
         close_btn.clicked.connect(self.accept)
+
         button_layout.addWidget(close_btn)
         button_layout.addStretch()
         layout.addLayout(button_layout)
@@ -242,13 +262,16 @@ class ViewMemberDialog(BaseMemberDialog):
         row_layout = QHBoxLayout(row)
         row_layout.setContentsMargins(0, 0, 0, 0)
         row_layout.setSpacing(100)
+
         label = QLabel(label_text)
         label.setStyleSheet(AppConfig.STYLES['dialog_label'])
         label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+
         value = QLabel(str(value_text))
         value.setStyleSheet(AppConfig.STYLES['info_value'])
         value.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
         value.setWordWrap(True)
+
         row_layout.addWidget(label, 1)
         row_layout.addWidget(value, 2)
         layout.addWidget(row)
@@ -258,7 +281,6 @@ class ViewMemberDialog(BaseMemberDialog):
         if date_value:
             return str(date_value).split()[0]
         return ''
-
 
 class UpdateMemberDialog(BaseMemberDialog):
     # Edit existing member info (except ID)
@@ -277,33 +299,40 @@ class UpdateMemberDialog(BaseMemberDialog):
         layout.addWidget(header)
         layout.addSpacing(40)
         form_container = self._create_form_container()
+
         form_layout = QVBoxLayout(form_container)
         form_layout.setContentsMargins(30, 10, 30, 30)
+
         self.fullname_input = QLineEdit()
         self.fullname_input.setText(self.member_data.get('full_name', ''))
         self.fullname_input.setFixedSize(AppConfig.FIELD_WIDTH, AppConfig.FIELD_HEIGHT)
         self.fullname_input.setStyleSheet(AppConfig.STYLES['input'])
         self._add_field(form_layout, "Full Name", self.fullname_input)
+
         self.email_input = QLineEdit()
         self.email_input.setText(self.member_data.get('email', ''))
         self.email_input.setFixedSize(AppConfig.FIELD_WIDTH, AppConfig.FIELD_HEIGHT)
         self.email_input.setStyleSheet(AppConfig.STYLES['input'])
         self._add_field(form_layout, "Email", self.email_input)
+
         self.mobile_input = QLineEdit()
         self.mobile_input.setText(self.member_data.get('mobile_number', ''))
         self.mobile_input.setFixedSize(AppConfig.FIELD_WIDTH, AppConfig.FIELD_HEIGHT)
         self.mobile_input.setStyleSheet(AppConfig.STYLES['input'])
         self._add_field(form_layout, "Mobile Number (+63)", self.mobile_input)
+
         self.status_combo = QComboBox()
         self.status_combo.addItems(AppConfig.MEMBER_STATUSES)
         self.status_combo.setCurrentText(self.member_data.get('status', 'Active'))
         self.status_combo.setFixedSize(AppConfig.FIELD_WIDTH, AppConfig.FIELD_HEIGHT)
         self.status_combo.setStyleSheet(AppConfig.STYLES['combo_with_dropdown'])
         self._add_field(form_layout, "Status", self.status_combo)
+
         container_layout = QHBoxLayout()
         container_layout.addStretch()
         container_layout.addWidget(form_container)
         container_layout.addStretch()
+
         layout.addLayout(container_layout)
         layout.addSpacing(50)
         buttons = self._create_buttons("Update", self._update_member)
@@ -341,7 +370,6 @@ class UpdateMemberDialog(BaseMemberDialog):
             print(f"[ERROR] Update member failed: {e}")
             QMessageBox.critical(self, "Error", f"An error occurred while updating member:\n{str(e)}")
 
-
 class ConfirmDeleteMemberDialog(QDialog):
     # Confirm irreversible member deletion
     
@@ -367,48 +395,62 @@ class ConfirmDeleteMemberDialog(QDialog):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 30)
         layout.setSpacing(0)
+
         header = QWidget()
         header.setFixedHeight(80)
         header.setStyleSheet(AppConfig.STYLES['dialog_header'])
+
         header_layout = QHBoxLayout(header)
         header_layout.setContentsMargins(0, 0, 0, 0)
+
         header_label = QLabel("CONFIRM DELETE MEMBER")
         header_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         header_label.setStyleSheet(AppConfig.STYLES['dialog_header_text'])
         header_layout.addWidget(header_label)
+
         layout.addWidget(header)
         layout.addSpacing(40)
+
         frame = QWidget()
         frame.setFixedSize(600, 250)
         frame.setStyleSheet(f"background-color: {AppConfig.COLORS['bg_dialog']}; border: none;")
+        
         frame_layout = QVBoxLayout(frame)
         frame_layout.setContentsMargins(30, 20, 30, 20)
+
         message = QLabel(f"Are you sure you want to permanently delete\n'{self.member_name}'?")
         message.setAlignment(Qt.AlignmentFlag.AlignCenter)
         message.setWordWrap(True)
         message.setStyleSheet("font-family: Montserrat; font-size: 20px; border: none; color: white;")
+
         frame_layout.addStretch()
         frame_layout.addWidget(message)
         frame_layout.addStretch()
+
         center_layout = QHBoxLayout()
         center_layout.addStretch()
         center_layout.addWidget(frame)
         center_layout.addStretch()
+
         layout.addLayout(center_layout)
         layout.addSpacing(40)
+
         buttons_layout = QHBoxLayout()
         buttons_layout.addStretch()
         buttons_layout.setSpacing(30)
+
         yes_btn = QPushButton("Yes")
         yes_btn.setFixedSize(150, AppConfig.BUTTON_HEIGHT_LARGE)
         yes_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         yes_btn.setStyleSheet(AppConfig.get_red_button_style())
         yes_btn.clicked.connect(self.accept)
+
         no_btn = QPushButton("No")
         no_btn.setFixedSize(150, AppConfig.BUTTON_HEIGHT_LARGE)
         no_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         no_btn.setStyleSheet(AppConfig.get_green_button_style())
         no_btn.clicked.connect(self.reject)
+
         buttons_layout.addWidget(yes_btn)
         buttons_layout.addWidget(no_btn)
         buttons_layout.addStretch()

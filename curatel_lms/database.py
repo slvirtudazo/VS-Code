@@ -1,6 +1,6 @@
 # curatel_lms/database.py
 
-# Database management module: handles MySQL connections and CRUD operations with error handling.
+# Manages MySQL connections and performs create, read, update, and delete operations with error handling
 
 import mysql.connector
 from mysql.connector import Error
