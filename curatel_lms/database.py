@@ -11,7 +11,7 @@ class Database:
     
     def __init__(self, host: str = 'localhost', user: str = 'root', 
                  password: str = '', database: str = 'db_library'):
-        # Set connection params and log init.
+        # Set connection parameters and log init
         self.connection = None
         self.host = host
         self.user = user

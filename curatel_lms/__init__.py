@@ -1,3 +1,3 @@
 # __init__.py
 
-# Curatel LMS Package
+# curatel_lms package

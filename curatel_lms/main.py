@@ -57,9 +57,9 @@ def load_fonts() -> bool:
     
     # Show font load summary
     if all_loaded:
-        print("✓ All fonts loaded successfully")
+        print("[OK] All fonts loaded successfully")
     else:
-        print("⚠ Some fonts missing, using system defaults")
+        print("[ERROR] Some fonts missing, using system defaults")
     
     return all_loaded
 
