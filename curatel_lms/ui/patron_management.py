@@ -454,6 +454,24 @@ class PatronManagement(QMainWindow):
                 )
                 self._load_members_from_database()
                 return
+            
+           # Check if member has outstanding fines
+            fine_query = """
+                SELECT SUM(fine_amount) as total_fines 
+                FROM borrowed_books 
+                WHERE member_id = %s AND fine_amount > 0
+            """
+            fine_result = self.db.fetch_one(fine_query, (self.selected_member_id,))
+            
+            if fine_result and fine_result['total_fines'] and float(fine_result['total_fines']) > 0:
+                total_fines = float(fine_result['total_fines'])
+                QMessageBox.warning(
+                    self, "Cannot Delete Member",
+                    f"Member '{member_data['full_name']}' has outstanding fines of ₱{total_fines:.2f}.\n\n"
+                    f"Please clear all fines before deleting this member."
+                )
+                return
+
             dialog = ConfirmDeleteMemberDialog(
                 parent=self,
                 member_name=member_data['full_name']

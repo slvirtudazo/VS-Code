@@ -94,13 +94,40 @@ class BaseMemberDialog(QDialog):
 
         return layout
     
+    def _validate_mobile_format(self, mobile):
+        # Validate mobile number format: +63 (13 digits) or 09 (11 digits)
+        # All spaces and special characters removed except + at start
+        cleaned = mobile.replace(" ", "").replace("-", "").replace("(", "").replace(")", "")
+        
+        if cleaned.startswith('+63'):
+            # Should have 13 characters total: +63 + 10 digits
+            if len(cleaned) != 13 or not cleaned[1:].isdigit():
+                return False
+        elif cleaned.startswith('09'):
+            # Should have 11 characters total: 09 + 9 digits
+            if len(cleaned) != 11 or not cleaned.isdigit():
+                return False
+        else:
+            return False
+        
+        return True
+    
     def _validate_inputs(self, full_name, email, mobile):
-        # Check all fields filled and email valid
+        # Check all fields filled, email valid, and mobile format correct
         if not all([full_name, email, mobile]):
             QMessageBox.warning(self, "Validation Error", "All fields are required. Please fill in name, email, and mobile number.")
             return False
         if not self._validate_email(email):
             QMessageBox.warning(self, "Invalid Email", "Please enter a valid email address (e.g., name@example.com)")
+            return False
+        if not self._validate_mobile_format(mobile):
+            QMessageBox.warning(
+                self, "Invalid Mobile Number",
+                "Please enter a valid mobile number:\n\n"
+                "• Starting with +63: must be 13 digits (e.g., +63 912 345 6789)\n"
+                "• Starting with 09: must be 11 digits (e.g., 0912 345 6789)\n\n"
+                "Spaces and special characters are allowed."
+            )
             return False
         return True
     
@@ -346,6 +373,25 @@ class UpdateMemberDialog(BaseMemberDialog):
         status = self.status_combo.currentText()
         if not self._validate_inputs(full_name, email, mobile):
             return
+        
+        # Check if trying to set to Inactive while having outstanding fines
+        if status == 'Inactive':
+            fine_query = """
+                SELECT SUM(fine_amount) as total_fines 
+                FROM borrowed_books 
+                WHERE member_id = %s AND fine_amount > 0
+            """
+            fine_result = self.db.fetch_one(fine_query, (self.member_data['member_id'],))
+            
+            if fine_result and fine_result['total_fines'] and float(fine_result['total_fines']) > 0:
+                total_fines = float(fine_result['total_fines'])
+                QMessageBox.warning(
+                    self, "Cannot Deactivate Member",
+                    f"Member '{full_name}' has outstanding fines of ₱{total_fines:.2f}.\n\n"
+                    f"Please clear all fines before deactivating this member."
+                )
+                return
+        
         check_query = "SELECT member_id FROM members WHERE email = %s AND member_id != %s"
         existing = self.db.fetch_one(check_query, (email, self.member_data['member_id']))
         if existing:

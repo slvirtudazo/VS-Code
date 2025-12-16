@@ -3,9 +3,12 @@
 # Displays system statistics, usage trends, and real-time database insights
 
 from PyQt6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
-                             QPushButton, QTableWidget, QTableWidgetItem, QHeaderView)
+                             QMessageBox, QPushButton, QTableWidget, QTableWidgetItem,
+                             QHeaderView)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QColor
+import csv
+from PyQt6.QtWidgets import QFileDialog
 
 # UI layout constants
 BUTTON_HEIGHT = 40
@@ -158,6 +161,25 @@ class ReportsAnalytics(QMainWindow):
         header_layout.addLayout(header_text)
         header_layout.addStretch()
 
+        # In setup_ui method, modify the header section:
+        export_btn = QPushButton("Export to CSV")
+        export_btn.setFont(QFont("Montserrat", 10))
+        export_btn.setFixedSize(150, 40)
+        export_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #8B7E66;
+                color: white;
+                border: none;
+                border-radius: 10px;
+            }
+            QPushButton:hover {
+                background-color: #6B5E46;
+            }
+        """)
+        export_btn.clicked.connect(self.export_to_csv)
+        header_layout.addWidget(export_btn)
+        header_layout.addSpacing(10)
+
         back_btn = QPushButton("Back to Dashboard")
         back_btn.setFont(QFont("Montserrat", 10))
         back_btn.setFixedSize(150, 40)
@@ -174,6 +196,7 @@ class ReportsAnalytics(QMainWindow):
         """)
         back_btn.clicked.connect(self.go_back_to_dashboard)
         header_layout.addWidget(back_btn)
+        
 
         main_layout.addLayout(header_layout)
         main_layout.addSpacing(20)
@@ -616,6 +639,78 @@ class ReportsAnalytics(QMainWindow):
             self.popular_books_table.setItem(row, 2, item)
         
         print(f"[INFO] Displayed {len(display_data)} sorted popular books")
+    
+    def export_to_csv(self):
+        # Export all report data to CSV file
+        try:
+            # Ask user for save location
+            file_path, _ = QFileDialog.getSaveFileName(
+                self,
+                "Export Library Report to CSV",
+                "library_report.csv",
+                "CSV Files (*.csv)"
+            )
+            
+            if not file_path:
+                return
+            
+            with open(file_path, 'w', newline='', encoding='utf-8') as csvfile:
+                writer = csv.writer(csvfile)
+                
+                # Write statistics section
+                writer.writerow(['LIBRARY STATISTICS'])
+                writer.writerow([''])
+                writer.writerow(['Metric', 'Value'])
+                writer.writerow(['Total Members', f"{self.stats['active_members']} active | {self.stats['inactive_members']} inactive"])
+                writer.writerow(['Currently Borrowed', f"{self.stats['currently_borrowed']} books"])
+                writer.writerow(['Overdue Books', f"{self.stats['overdue_books']} books"])
+                writer.writerow(['Total Fines', f"₱{self.stats['total_fines']:.2f}"])
+                writer.writerow([''])
+                writer.writerow([''])
+                
+                # Write Top Borrowers section
+                writer.writerow(['TOP BORROWERS'])
+                writer.writerow([''])
+                writer.writerow(['Rank', 'Full Name', 'Books Borrowed', 'Total Fines'])
+                
+                for idx, borrower in enumerate(self.top_borrowers_data[:5], 1):
+                    fines = float(borrower['total_fines']) if borrower['total_fines'] else 0.0
+                    writer.writerow([
+                        idx,
+                        borrower['full_name'],
+                        borrower['books_borrowed'],
+                        f"₱{fines:.2f}"
+                    ])
+                
+                writer.writerow([''])
+                writer.writerow([''])
+                
+                # Write Popular Books section
+                writer.writerow(['MOST POPULAR BOOKS'])
+                writer.writerow([''])
+                writer.writerow(['Rank', 'Book Title', 'Times Borrowed'])
+                
+                for idx, book in enumerate(self.popular_books_data[:5], 1):
+                    writer.writerow([
+                        idx,
+                        book['title'],
+                        book['times_borrowed']
+                    ])
+            
+            QMessageBox.information(
+                self, "Export Successful",
+                f"Library report has been exported to:\n{file_path}"
+            )
+            print(f"[INFO] Report exported to: {file_path}")
+            
+        except Exception as e:
+            print(f"[ERROR] Export to CSV failed: {e}")
+            import traceback
+            traceback.print_exc()
+            QMessageBox.critical(
+                self, "Export Failed",
+                f"Failed to export report:\n{str(e)}"
+            )
     
     def go_back_to_dashboard(self):
         # Close and return to main screen

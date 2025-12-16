@@ -83,11 +83,30 @@ class BaseBookDialog(QDialog):
         layout.addStretch()
         return layout
     
+    def _validate_isbn_format(self, isbn):
+        # Validate ISBN format: should be 13 digits, ignoring spaces and hyphens
+        cleaned = isbn.replace(" ", "").replace("-", "")
+        
+        if len(cleaned) != 13 or not cleaned.isdigit():
+            return False
+        
+        return True
+    
     def _validate_inputs(self, title, author, isbn):
-        # Check required fields
+        # Check required fields and ISBN format
         if not all([title, author, isbn]):
             QMessageBox.warning(self, "Validation Error", "All fields are required. Please fill in title, author, and ISBN.")
             return False
+        
+        if not self._validate_isbn_format(isbn):
+            QMessageBox.warning(
+                self, "Invalid ISBN",
+                "Please enter a valid 13-digit ISBN.\n\n"
+                "Example: 978-0-123-45678-9 or 9780123456789\n\n"
+                "Spaces and hyphens are allowed."
+            )
+            return False
+        
         return True
     
     def _generate_book_id(self):
@@ -154,13 +173,27 @@ class AddBookDialog(BaseBookDialog):
         layout.addLayout(buttons)
     
     def _save_book(self):
-        # Save validated book to DB
+        # Save validated book to DB with ISBN uniqueness check
         title = self.title_input.text().strip()
         author = self.author_input.text().strip()
         isbn = self.isbn_input.text().strip()
         category = self.category_combo.currentText()
         if not self._validate_inputs(title, author, isbn):
             return
+        
+        # Check for duplicate ISBN
+        check_query = "SELECT book_id, title FROM books WHERE isbn = %s"
+        existing = self.db.fetch_one(check_query, (isbn,))
+        if existing:
+            QMessageBox.warning(
+                self, "Duplicate ISBN",
+                f"This ISBN is already registered for:\n\n"
+                f"Book ID: {existing['book_id']}\n"
+                f"Title: {existing['title']}\n\n"
+                f"Please use a different ISBN."
+            )
+            return
+        
         book_id = self._generate_book_id()
         now = datetime.now()
         query = """
@@ -322,13 +355,27 @@ class UpdateBookDialog(BaseBookDialog):
         layout.addLayout(buttons)
     
     def _update_book(self):
-        # Update validated book in DB
+        # Update validated book in DB with ISBN uniqueness check
         title = self.title_input.text().strip()
         author = self.author_input.text().strip()
         isbn = self.isbn_input.text().strip()
         category = self.category_combo.currentText()
         if not self._validate_inputs(title, author, isbn):
             return
+        
+        # Check for duplicate ISBN (excluding current book)
+        check_query = "SELECT book_id, title FROM books WHERE isbn = %s AND book_id != %s"
+        existing = self.db.fetch_one(check_query, (isbn, self.book_data['book_id']))
+        if existing:
+            QMessageBox.warning(
+                self, "Duplicate ISBN",
+                f"This ISBN is already registered for:\n\n"
+                f"Book ID: {existing['book_id']}\n"
+                f"Title: {existing['title']}\n\n"
+                f"Please use a different ISBN."
+            )
+            return
+        
         now = datetime.now()
         query = """
             UPDATE books 
