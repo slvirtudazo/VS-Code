@@ -71,7 +71,7 @@ class ResetPasswordDialog(QDialog):
 
         send_btn = QPushButton("Send")
         send_btn.setFont(QFont("Montserrat", 15, QFont.Weight.Bold))
-        send_btn.setFixedSize(135, 45)
+        send_btn.setFixedSize(135, 50)
         send_btn.setStyleSheet("""
             QPushButton {
                 background-color: #8BAE66;
@@ -88,7 +88,7 @@ class ResetPasswordDialog(QDialog):
 
         cancel_btn = QPushButton("Cancel")
         cancel_btn.setFont(QFont("Montserrat", 15, QFont.Weight.Bold))
-        cancel_btn.setFixedSize(135, 45)
+        cancel_btn.setFixedSize(135, 50)
         cancel_btn.setStyleSheet("""
             QPushButton {
                 background-color: #AF3E3E;

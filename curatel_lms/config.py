@@ -76,7 +76,7 @@ class AppConfig:
         'bg_light': '#C9B8A8',
         'bg_table': '#E8DCC8',
         'bg_dialog': '#8B7E66',
-        'bg_white': '#FFFFFF',
+        'bg_white': '#FEFFFC',
         
         # Borders
         'border_color': '#8B7E66',
