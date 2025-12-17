@@ -26,7 +26,6 @@ class BaseBookDialog(QDialog):
         # Set title, size, style, and center dialog
         self.setWindowTitle("Curatel - Catalog Management")
         self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, False)
-        self.setWindowFlag(Qt.WindowType.MSWindowsFixedSizeDialogHint)
         self.setFixedSize(AppConfig.DIALOG_WIDTH, AppConfig.DIALOG_HEIGHT)
         self.setStyleSheet(f"background-color: {AppConfig.COLORS['bg_dialog']};")
         self._center_on_screen()
@@ -409,7 +408,6 @@ class ConfirmDeleteDialog(QDialog):
         # Set smaller fixed size and center
         self.setWindowTitle("Curatel - Catalog Management")
         self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, False)
-        self.setWindowFlag(Qt.WindowType.MSWindowsFixedSizeDialogHint)
         self.setFixedSize(AppConfig.DIALOG_WIDTH, 500)
         self.setStyleSheet(f"background-color: {AppConfig.COLORS['bg_dialog']};")
         screen_center = QApplication.primaryScreen().geometry().center()

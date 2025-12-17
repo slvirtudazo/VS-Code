@@ -10,7 +10,6 @@ products = [{'code': 'P001', 'name': 'Highlighter', 'price': 25.00, 'stock': 50}
 
 transactions = []
 
-
 def product_code_exists(code):
     return any(p['code'] == code for p in products)
 

@@ -357,36 +357,76 @@ class LoginScreen(QMainWindow):
             self.password_visible = True
 
     def _handle_login(self):
-        # Check login credentials
         username = self.username_input.text().strip()
         password = self.password_input.text().strip()
 
-        if not username or not password:
+        # Check for empty fields
+        if not username and not password:
             QMessageBox.warning(self, "Error", "Please enter both username and password.")
             return
+        if not username:
+            QMessageBox.warning(self, "Error", "Please enter your username.")
+            return
+        if not password:
+            QMessageBox.warning(self, "Error", "Please enter your password.")
+            return
 
-        # Demo auth
-        if username == "slav" and password == "554893":
+        # Define password validation regex
+        password_pattern = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*[\d\W]).{7,}$"
+        is_password_valid = re.search(password_pattern, password) is not None
+
+        # Demo credentials
+        valid_username = "slav"
+        valid_password = "!Slav1"
+
+        # Validate credentials
+        username_match = (username == valid_username)
+        password_match = (password == valid_password)
+
+        if username_match and password_match:
             QMessageBox.information(self, "Success", f"Welcome, {username}!")
             self._show_dashboard()
-        else:
-            QMessageBox.critical(self, "Error", "Invalid username or password.")
+        elif not username_match and not password_match:
+            # Both incorrect
+            msg = (
+                "Incorrect username and password. Ensure the inputs are correct and meet the following requirements:\n\n"
+                "Password must:\n"
+                "⦁ Be at least 7 characters long\n"
+                "⦁ Contain at least one uppercase letter\n"
+                "⦁ Contain at least one lowercase letter\n"
+                "⦁ Contain at least one number or special character"
+            )
+            QMessageBox.critical(self, "Login Failed", msg)
+        elif not username_match:
+            # Only username wrong
+            QMessageBox.critical(self, "Login Failed", "Incorrect username. Ensure the input is correct.")
+        elif not password_match:
+            # Only password wrong (even if format is valid, it just doesn't match)
+            # But we still show format requirements to guide user
+            msg = (
+                "Incorrect password. Ensure the input is correct and meets the following requirements:\n\n"
+                "⦁ Be at least 7 characters long\n"
+                "⦁ Contain at least one uppercase letter\n"
+                "⦁ Contain at least one lowercase letter\n"
+                "⦁ Contain at least one number or special character"
+            )
+            QMessageBox.critical(self, "Login Failed", msg)
 
     def _show_reset_password(self):
         # Open reset dialog
         ResetPasswordDialog(self).exec()
 
     def _show_dashboard(self):
-        # Open dashboard
+        # Open main window with integrated navigation
         try:
-            from curatel_lms.ui.dashboard import Dashboard
-            self.dashboard = Dashboard(self.db)
-            self.dashboard.show()
+            from curatel_lms.ui.window import MainWindow
+            self.main_window = MainWindow(self.db)
+            self.main_window.show()
             self.closing_without_prompt = True
             self.close()
         except Exception as e:
-            QMessageBox.critical(self, "Error", "Failed to open dashboard")
-            print(f"[ERROR] Dashboard error: {e}")
+            QMessageBox.critical(self, "Error", "Failed to open main window")
+            print(f"[ERROR] Main window error: {e}")
 
     def show_fullscreen(self):
         # Maximize window

@@ -85,6 +85,26 @@ def main() -> None:
         
         print("[INFO] Application initialized")
         
+        app.setStyleSheet("""
+            QMessageBox {
+                background-color: #3C2A21;
+                color: white;
+            }
+            QMessageBox QLabel {
+                color: white;
+            }
+            QMessageBox QPushButton {
+                background-color: #8B7E66;
+                color: white;
+                border: none;
+                padding: 5px 15px;
+                border-radius: 5px;
+            }
+            QMessageBox QPushButton:hover {
+                background-color: #7A6D55;
+            }
+        """)
+
         # Load fonts
         load_fonts()
         

@@ -81,6 +81,12 @@ class AppConfig:
         # Borders
         'border_color': '#8B7E66',
         'border_dark': '#6B5E46',
+
+        # Sidebar colors
+        'sidebar_bg': '#8B7E66',
+        'sidebar_active': 'rgba(0, 0, 0, 0.2)',
+        'sidebar_hover': 'rgba(0, 0, 0, 0.1)',
+        'sidebar_border': '#B8956A',
     }
     
     # STYLE TEMPLATES
@@ -254,7 +260,7 @@ class AppConfig:
             border: none;
             background: transparent;
         """,
-        
+    
         # Dialog header
         'dialog_header': """
             background-color: #3C2A21;

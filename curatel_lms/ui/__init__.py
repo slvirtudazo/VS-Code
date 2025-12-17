@@ -1,3 +1,3 @@
 # __init__.py
 
-# UI package
+# ui package
