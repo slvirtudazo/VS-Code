@@ -1,0 +1,123 @@
+body {
+    background-image: url('assets/beige_bg.jpg'); 
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    
+    min-height: 100vh;      
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+}
+
+.login-form {
+    font-family: 'Verdana', sans-serif;
+    font-size: 15px;    
+    text-align: center;
+    max-width: 500px;
+    width: 100%;
+    border-radius: 50px;
+    padding: 50px;
+    background-color: #ffffff83;
+    box-shadow: 0 0 10px rgba(2, 2, 2, 0.5);
+    box-sizing: border-box; 
+}
+
+.login-form h2 {
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 30px;
+    margin-top: 0;
+    margin-bottom: 30px;
+}
+
+.login-form > form > label {
+    display: block;       
+    text-align: left;     
+    margin-bottom: 8px;
+    margin-top: 20px;    
+}
+
+.login-form input[type="text"],
+.login-form input[type="password"] {
+    font-size: 15px;
+    background-color: #fff;
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid #000;  
+    box-sizing: border-box;
+}
+
+.options-row {
+    font-size: 15px;
+    display: flex;                
+    justify-content: space-between;
+    align-items: center;         
+    width: 100%;     
+    margin-top: 20px;            
+    margin-bottom: 30px;
+}
+
+.checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.checkbox-wrapper label {
+    cursor: pointer;
+}
+
+.checkbox-wrapper input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: rgb(0, 130, 0);
+}
+
+.forgot-password {
+    color: #000;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.forgot-password:hover {
+    color: #003e80;
+}
+
+.buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;         
+    width: 100%;
+}
+
+.buttons button {
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 16px;
+    font-weight: bold;
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.buttons .login-btn {
+    color: #fff;
+    background-color: #2669b2;
+}
+.buttons .login-btn:hover {
+    background-color: #004794;
+}
+
+.buttons .signup-btn {
+    color: #fff;
+    background-color: #626a71;
+}
+.buttons .signup-btn:hover {
+    background-color: #43494e;
+}
