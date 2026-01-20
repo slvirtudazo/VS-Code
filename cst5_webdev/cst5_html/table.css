@@ -1,0 +1,11 @@
+th {
+    text-align: center;
+    letter-spacing: 2px;
+    background-color: #7cda97;;
+}
+
+th, td {
+    font-family: Lexend Deca, sans-serif;
+    border: 5px solid black;
+    padding: 10px;
+}

@@ -1,0 +1,84 @@
+<!DOCTYPE html> <!-- declaration to define this document as HTML5 -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8"> <!-- sets the char encoding ensures web to display test -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- screen width default scaling -->
+    <title>Document</title>
+</head>
+<body>
+
+</body>
+</html>
+
+<!-- HEADINGS & PARAGRAPHS -->
+<h1> to <h6> all bold, different sizes
+<p> block of text
+
+<!-- BREAK & RULES -->
+<br> for invisible line
+<hr> for horizontal line
+
+<!-- SEMANTIC PHRASE -->
+<strong> for bold
+<em> for italics
+<small> for smaller
+
+<!-- ORGANIZING DATA WITH LISTS -->
+<ul> unordered list with bullets
+<ol> ordered list with numbers
+
+<!-- CONTAINERS: DIV & SPAN -->
+<div> block-level container, new line, full width, groups sections
+<span> inline container, no new line, necessary width, styles small part inside <p> or <h1>
+
+<!-- EMBEDDING IMAGES -->
+<img> self-closing
+<src> for URL/local path
+<alt> for description if image fails to load
+
+<!-- HYPERLINKS -->
+<a> anchor tag for links
+<href> for URL path
+<target="_blank"> opens link in new tab
+<target="_self"> opens link in same tab
+
+<!-- STRUCTURED DATA -->
+<table> tabular container
+<tr> table row
+<th> table header cell
+<td> table data cell
+
+<!-- COLLECTING DATA -->
+<form> wrapper element, defines where data is sent
+<input> self-closing, changes behavior based on the type attribute
+id="..." uq identifier for the input, connecting labels and CSS styling
+
+<!-- COMMON INPUT TYPES -->
+type="radio" single selection button
+type="checkbox" multi-selection boxes
+type="text" single-line text field
+type="desc" box description
+type="email" email format
+type="number" numeric input field
+type="tel" phone number format
+type="file" file upload control
+type="password" password field, multi-char, masks input
+type="date" calendar widget
+type="hidden" hidden input field
+type="submit" submit button
+type="reset" reset button
+
+<!-- SINGLE SELECTION: RADIO BUTTONS -->
+select exactly one option from a set of choices
+
+<!-- MULTI-LINE INPUT: TEXTAREA -->
+<textarea> multi-line text input control
+
+<!-- DROPDOWNS: SELECT BOX -->
+<select> dropdown container
+<option> defines each option in the dropdown
+<value> value sent to the server when an option is selected
+
+<!-- ESSENTIAL ATTRIBUTES -->
+<placeholder> expected value of an input
+<required> a field must be filled out before submission
