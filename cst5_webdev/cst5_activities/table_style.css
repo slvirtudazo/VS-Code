@@ -1,14 +1,14 @@
 body {
-    background-image: url('assets/beige_bg.jpg');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
     min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
     margin: 0;
+    background-image: url('assets/beige_bg.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
 }
 
 .container {
@@ -49,7 +49,6 @@ th {
 td {
     font-family: 'Tahoma', sans-serif;
     font-size: 13px;
-    font-weight: normal;
     background-color: #fff;
     text-align: left;
     word-break: break-word;
