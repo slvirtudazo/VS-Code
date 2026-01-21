@@ -1,11 +1,57 @@
-th {
+body {
+    background-image: url('assets/beige_bg.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+}
+
+.container {
     text-align: center;
-    letter-spacing: 2px;
-    background-color: #7cda97;;
+    max-width: 900px;
+    width: 100%;
+    border-radius: 50px;
+    padding: 50px;
+    background-color: #ffffff83;
+    box-shadow: 0 0 10px rgba(2, 2, 2, 0.5);
+    box-sizing: border-box;
+}
+
+table {
+    white-space: nowrap;
+}
+
+table, th, td {
+    border: none;
+    margin: 0px;
+    padding: 0;
+    border: 1px solid black;
+    border-spacing: 0px;
+}
+
+th {
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 15px;
+    font-weight: bold;
+    background-color: #e6cc9a;
+}
+
+td {
+    font-family: 'Tahoma', sans-serif;
+    font-size: 12px;
+    font-weight: normal;
+    background-color: #fff;
 }
 
 th, td {
-    font-family: Lexend Deca, sans-serif;
-    border: 5px solid black;
-    padding: 10px;
+    text-align: center;
+    letter-spacing: 1px;
+    border-spacing: 0;
+    padding: 15px;
 }
