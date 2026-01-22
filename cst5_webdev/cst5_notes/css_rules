@@ -1,0 +1,8 @@
+<!-- CSS SELECTORS MASTERCLASS -->
+
+.class <!-- a group label, selects multiple elements, shares the same style -->
+.my-button { }
+
+#id <!-- unique identifier, selects one element, specific style -->
+#main-header { }
+ 

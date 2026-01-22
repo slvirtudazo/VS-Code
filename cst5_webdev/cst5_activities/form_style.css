@@ -26,17 +26,18 @@ body {
 }
 
 .login-form h2 {
-    font-family: 'Segoe UI', sans-serif;
+    font-family: 'Georgia', sans-serif;
     font-size: 30px;
+    letter-spacing: 2px;
     margin-top: 0;
-    margin-bottom: 30px;
+    margin-bottom: 0 auto;
 }
 
 .login-form > form > label {
     display: block;
     text-align: left;
     margin-bottom: 8px;
-    margin-top: 20px;
+    margin-top: 10px;
 }
 
 .login-form input[type="text"],
@@ -56,7 +57,7 @@ body {
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    margin-top: 20px;
+    margin-top: 0;
     margin-bottom: 30px;
 }
 
