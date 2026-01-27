@@ -1,0 +1,173 @@
+/* Navigation Bar */
+.navbar-brand, 
+.navbar-nav .nav-link {
+    font-family: 'Segoe UI', sans-serif;
+    letter-spacing: 1px;
+    color: #FFF;
+}
+
+.navbar-nav .nav-link:hover {
+    color: #808080;
+}
+
+/* Home Section */
+#home {
+    height: 100vh;
+    text-align: center;
+    line-height: 2;
+    margin-bottom: 70px;
+    color: #FFF;
+    background: linear-gradient(to bottom, #b7b7b7, #000000);
+}
+
+#home .container {
+    padding-top: 230px;
+}
+
+#home h1 {
+    font-family: 'Georgia', serif;
+    font-size: 50px;
+    font-weight: bold;  
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+}
+
+#home p {
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 18px;
+    letter-spacing: 1px;
+    font-weight: lighter;
+    line-height: 2;
+    margin-bottom: 30px;
+}
+
+/* About Section */
+#about .img-fluid.rounded-circle {
+    border: 3px solid #000;
+    height: 70vh;
+    width: 80%;
+    margin-top: 140px; 
+}
+
+#about h2 {
+    font-family: 'Georgia', sans-serif;
+    font-size: 40px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    padding-top: 230px;
+    margin-bottom: 15px;
+}
+
+#about p {
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 18px;
+    line-height: 2;
+    letter-spacing: 1px;
+    text-align: justify;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 100px;
+}
+
+/* Skills Section */
+#skills .container.text-center {
+    padding-top: 80px;
+    margin-bottom: 500px;
+}
+
+#skills h2 {
+    font-family: 'Georgia', sans-serif;
+    font-size: 40px;
+    font-weight: bold;
+}
+
+#skills .row.gy-3 {
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 15px;
+    font-weight: normal;
+}
+
+#skills .card.p-3 {
+    background-color: #FFF;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(2, 2, 2, 0.5);
+    padding: 20px;
+    text-align: center;
+}
+
+/* Projects Section*/
+#projects .container.text-center {
+    padding-top: 30px;
+    padding-bottom: 30px;
+}
+
+#projects h2 {
+    font-family: 'Georgia', sans-serif;
+    font-size: 40px;
+    font-weight: bold;
+}
+
+#projects .row {
+    margin-top: 50px;
+}
+
+#projects .card {
+    background-color: #FFF;
+    border-radius: 5%;
+    box-shadow: 0 0 15px rgba(2, 2, 2, 0.5);
+    padding: 20px;
+    text-align: center;
+}
+
+#projects .card-img-top {
+    border-radius: 10px;
+}
+
+#projects h5 {
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 25px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    margin-top: 10px;
+}
+
+#projects p {
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 15px;
+    letter-spacing: 2px;
+}
+
+/* Contact Section */
+#contact {
+    background: linear-gradient(to bottom, #b7b7b7, #000000);
+    color: #ffffff;
+}
+
+#contact .container.text-center {
+    padding-top: 200px;
+    padding-bottom: 180px;    
+}
+
+#contact h2 {
+    font-family: 'Georgia', sans-serif;
+    font-size: 50px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+#contact p {
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 15px;
+    font-weight: normal;
+}
+
+/* Footer */
+.text-center.py-3.bg-secondary.text-white {
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 15px;
+    font-weight: normal;
+    background-color: #000 !important;
+    padding-top: 200px;
+    padding-bottom: 300px;
+}
