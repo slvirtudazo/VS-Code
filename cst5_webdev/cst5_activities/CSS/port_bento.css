@@ -1,0 +1,423 @@
+/* Root variables for consistent colors and spacing throughout the design */
+:root {
+    --card-bg: #ffffff;
+    --border-color: #e0e0e0;
+    --text-primary: #000000;
+    --text-secondary: #505050;
+    --accent-color: #3498db;
+    --hover-bg: #f8f9fa;
+    --border-radius: 16px;
+    --border-radius-sm: 12px;
+    --spacing: 1.5rem;
+}
+
+/* Base body styling with a light background */
+body {
+    background-color: #f5f5f5;
+    font-family: 'Segoe UI', sans-serif;
+    color: var(--text-primary);
+    line-height: 1.6;
+}
+
+/* Main card styling - all major sections use this as a base */
+.main-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.3s ease;
+}
+
+.main-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Header card containing profile picture, name, and university logo */
+.header-card {
+    margin-bottom: 0.5rem;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+}
+
+/* Profile section with picture and basic info on the left side */
+.profile-section {
+    display: flex;
+    gap: 2rem;
+    line-height: 2rem;
+    align-items: center;
+    flex: 1;
+}
+
+.profile-pic {
+    width: 180px;
+    height: 180px;
+    border-radius: var(--border-radius);
+    object-fit: cover;
+}
+
+.profile-info {
+    flex: 1;
+}
+
+/* Profile name uses main font specifications: bold and 18px */
+.profile-name {
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 25px;
+    font-weight: bold;
+    margin-top: -4rem;
+    margin-bottom: 0.1rem;
+    color: var(--text-primary);
+}
+
+/* Pronouns appear in a lighter gray next to the name */
+.pronouns {
+    font-size: 15px;;
+    color: var(--text-secondary);
+    font-weight: normal;
+}
+
+/* Job title and location use sub font specifications: lighter and 13px */
+.job-title {
+    font-family: Verdana, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 0.1rem;
+    color: var(--text-primary);
+}
+
+.location {
+    font-family: Verdana, sans-serif;
+    font-size: 13px;
+    font-weight: lighter;
+    color: var(--text-secondary);
+    margin-bottom: 0;
+}
+
+/* University section positioned on the right side of header */
+.university-section {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.university-logo {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.university-name {
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* Platform links displayed as mini cards in a horizontal row */
+.platform-links {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-left: 13rem;
+    margin-top: -4.7rem;
+}
+
+.platform-card {
+    font-family: Verdana, sans-serif;
+    font-size: 12px;
+    font-weight: lighter;
+    border: 1px solid var(--border-color);
+
+    border-radius: var(--border-radius-sm);
+    padding: 0.4rem 0.8rem;
+
+    color: var(--text-primary);
+    background: var(--card-bg);
+    text-decoration: none;
+    
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.platform-card:hover {
+    background: var(--hover-bg);
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+    transform: translateY(-2px);
+}
+
+.platform-card i {
+    font-size: 15px;
+}
+
+/* Section header with icon and title */
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 1.2rem;
+    position: relative;
+}
+
+.section-icon {
+    font-size: 24px;
+    color: var(--text-primary);
+}
+
+/* Section title uses main font styling */
+.section-title {
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 18px;
+    font-weight: bold;
+    margin: 0;
+    color: var(--text-primary);
+}
+
+/* View All link positioned at the right end of section headers */
+.view-all-link {
+    margin-left: auto;
+    font-family: Verdana, sans-serif;
+    font-size: 13px;
+    font-weight: lighter;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.view-all-link:hover {
+    color: var(--accent-color);
+}
+
+/* Section content area with proper text styling */
+.section-content {
+    font-family: Verdana, sans-serif;
+    font-size: 13px;
+    font-weight: lighter;
+    text-align: justify;
+    color: var(--text-secondary);
+    line-height: 1.7;
+}
+
+.content-text {
+    margin-bottom: 1rem;
+    text-align: justify;
+}
+
+/* Mini cards used for experience, projects, and certifications */
+.mini-card {
+    background: var(--hover-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    padding: 1rem;
+    margin-bottom: 0.8rem;
+    transition: all 0.3s ease;
+}
+
+.mini-card:hover {
+    border-color: var(--accent-color);
+    transform: translateX(4px);
+}
+
+.mini-card:last-child {
+    margin-bottom: 0;
+}
+
+/* Experience card specific styling */
+.experience-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.experience-title {
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 15px;
+    font-weight: bold;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.experience-date {
+    font-family: Verdana, sans-serif;
+    font-size: 12px;
+    font-weight: lighter;
+    color: var(--text-secondary);
+}
+
+.company-name {
+    font-family: Verdana, sans-serif;
+    font-size: 13px;
+    font-weight: lighter;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* Hobby categories use bold main font */
+.hobby-category {
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 15px;
+    font-weight: bold;
+    color: var(--text-primary);
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.hobby-category:first-child {
+    margin-top: 0;
+}
+
+/* Tech Stack categories */
+.tech-category {
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 15px;
+    font-weight: bold;
+    color: var(--text-primary);
+    margin-top: 1.2rem;
+    margin-bottom: 0.8rem;
+}
+
+.tech-category:first-child {
+    margin-top: 0;
+}
+
+/* Tech tags displayed as small pill-shaped cards */
+.tech-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-bottom: 0.5rem;
+}
+
+.tech-tag {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 0.4rem 0.9rem;
+    font-family: Verdana, sans-serif;
+    font-size: 12px;
+    font-weight: lighter;
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+}
+
+.tech-tag:hover {
+    background: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
+    transform: translateY(-2px);
+}
+
+/* Project cards styling */
+.project-title {
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 15px;
+    font-weight: bold;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.project-description {
+    font-family: Verdana, sans-serif;
+    font-size: 13px;
+    font-weight: lighter;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* Certification cards styling */
+.certification-title {
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 15px;
+    font-weight: bold;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.certification-issuer {
+    font-family: Verdana, sans-serif;
+    font-size: 13px;
+    font-weight: lighter;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.certification-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+/* Ensure all text inside the certification link maintains its original styling */
+.certification-link * {
+    text-decoration: none; /* Belt-and-suspenders approach: removes underlines from all children too */
+}
+
+/* Each section gets a custom height based on its content density */
+
+.about-section {
+    min-height: 250px; /* Moderate height for two paragraphs */
+}
+
+.experience-section {
+    min-height: 410px; /* Tall card with three job entries */
+}
+
+.tech-section {
+    min-height: 720px; /* Tallest card - has three categories of tech tags */
+}
+
+.projects-section {
+    min-height: 600px; /* Shorter card with just two projects */
+}
+
+.hobbies-section {
+    min-height: 340px; /* Medium-tall for three hobby categories */
+}
+
+.certifications-section {
+    min-height: 160px; /* Shortest card with minimal content */
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 992px) {
+    .header-content {
+        flex-direction: column;
+    }
+    
+    .university-section {
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .profile-section {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .profile-name {
+        font-size: 24px;
+    }
+    
+    .platform-links {
+        justify-content: center;
+    }
+    
+    .experience-header {
+        flex-direction: column;
+    }
+}
