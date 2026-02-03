@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator</title>
+    <link rel="stylesheet" href="calc_style.css">
+</head>
+<body>
+    <div class="calculator">
+        <!-- Display screen shows the current input and results -->
+        <div id="display" class="display">0</div>
+        
+        <div class="buttons">
+            <!-- First row: AC (All Clear) and X (Erase) buttons -->
+            <button id="all-clear" class="btn special">AC</button>
+            <button id="erase" class="btn special">X</button>
+            <button id="percent" class="btn operator">%</button>
+            <button id="divide" class="btn operator">÷</button>
+            
+            <!-- Number pad and operation buttons -->
+            <button id="seven" class="btn number">7</button>
+            <button id="eight" class="btn number">8</button>
+            <button id="nine" class="btn number">9</button>
+            <button id="multiply" class="btn operator">×</button>
+            
+            <button id="four" class="btn number">4</button>
+            <button id="five" class="btn number">5</button>
+            <button id="six" class="btn number">6</button>
+            <button id="subtract" class="btn operator">−</button>
+            
+            <button id="one" class="btn number">1</button>
+            <button id="two" class="btn number">2</button>
+            <button id="three" class="btn number">3</button>
+            <button id="add" class="btn operator">+</button>
+            
+            <!-- Bottom row with zero, decimal, and equals -->
+            <button id="zero" class="btn number zero">0</button>
+            <button id="decimal" class="btn number">.</button>
+            <button id="equals" class="btn operator equals">=</button>
+        </div>
+    </div>
+    
+    <!-- Link to JavaScript file -->
+    <script src="calc_script.js"></script>
+</body>
+</html>

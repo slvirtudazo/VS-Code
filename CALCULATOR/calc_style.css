@@ -1,0 +1,113 @@
+/* Reset default browser styles and set base font */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #f5e6d3 0%, #d4a574 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+/* Main calculator container */
+.calculator {
+    background: white;
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 10px 40px rgba(139, 90, 43, 0.3);
+    width: 100%;
+    max-width: 360px;
+}
+
+/* Display screen styling */
+.display {
+    background: #f9f3ed;
+    border: 2px solid #d4a574;
+    border-radius: 12px;
+    padding: 25px 20px;
+    margin-bottom: 20px;
+    text-align: right;
+    font-size: 2.5rem;
+    font-weight: 500;
+    color: #5c4033;
+    min-height: 80px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Grid layout for calculator buttons */
+.buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+/* Base button styling - all buttons same dimensions */
+.btn {
+    border: none;
+    border-radius: 12px;
+    padding: 22px;
+    font-size: 1.4rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #5c4033;
+    width: 100%;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Number button styling - white background */
+.btn.number {
+    background: white;
+    border: 2px solid #e8d5c4;
+}
+
+.btn.number:hover {
+    background: #f9f3ed;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(139, 90, 43, 0.2);
+}
+
+/* Operator button styling - light brown for all operators */
+.btn.operator {
+    background: #d4a574;
+    color: white;
+}
+
+.btn.operator:hover {
+    background: #c49563;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(139, 90, 43, 0.3);
+}
+
+/* Special buttons (AC and X only) - darker brown */
+.btn.special {
+    background: #8b5a2b;
+    color: white;
+}
+
+.btn.special:hover {
+    background: #7a4e24;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(139, 90, 43, 0.4);
+}
+
+/* Active state when button is pressed */
+.btn:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+/* Make the zero button span two columns (from position 1 to 2) */
+.btn.zero {
+    grid-column: span 2;
+}
