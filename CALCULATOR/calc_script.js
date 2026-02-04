@@ -2,10 +2,10 @@
 const display = document.getElementById('display');
 
 // Variables to track calculator state
-let currentInput = '0';      // What the user is currently typing
-let previousInput = '';      // The first number before an operation
-let operation = null;        // The operation to perform (+, -, ×, ÷, %)
-let shouldResetDisplay = false;  // Flag to know when to start fresh input
+let currentInput = '0';                 // What the user is currently typing
+let previousInput = '';                 // The first number before an operation
+let operation = null;                   // The operation to perform
+let shouldResetDisplay = false;         // Flag to know when to start fresh input
 
 // Get all the buttons using getElementById
 const allClearBtn = document.getElementById('all-clear');
@@ -37,7 +37,7 @@ function updateDisplay() {
 
 // Function to handle number button clicks
 function inputNumber(num) {
-    // If we just calculated a result, start fresh with new number
+    // When done calculating a result, start fresh with new number
     if (shouldResetDisplay) {
         currentInput = num;
         shouldResetDisplay = false;
@@ -50,7 +50,7 @@ function inputNumber(num) {
 
 // Function to handle decimal point
 function inputDecimal() {
-    // Start fresh if we just calculated
+    // Start fresh if done calculating
     if (shouldResetDisplay) {
         currentInput = '0.';
         shouldResetDisplay = false;
@@ -84,7 +84,7 @@ function calculate() {
     const prev = parseFloat(previousInput);
     const current = parseFloat(currentInput);
     
-    // Don't calculate if we don't have valid numbers
+    // Prevents from calculating if there are no valid numbers
     if (isNaN(prev) || isNaN(current)) return;
     
     let result;
@@ -101,12 +101,10 @@ function calculate() {
             result = prev * current;
             break;
         case '÷':
-            // Prevent division by zero
-            result = current === 0 ? 'Error' : prev / current;
+            result = current === 0 ? 'Error' : prev / current; // Prevent division by zero
             break;
         case '%':
-            // Percent: divide by 100
-            result = prev / 100;
+            result = prev / 100; // Percent: divide by 100
             break;
         default:
             return;
@@ -172,7 +170,7 @@ equalsBtn.addEventListener('click', () => calculate());
 allClearBtn.addEventListener('click', () => allClear());
 eraseBtn.addEventListener('click', () => erase());
 
-// Add keyboard support - listen for keydown events on the entire document
+// Listen for keydown events on the entire document
 document.addEventListener('keydown', (event) => {
     const key = event.key;
     
@@ -200,7 +198,7 @@ document.addEventListener('keydown', (event) => {
     else if (key === '/') {
         handleOperation('÷');
     }
-    // Handle percent (% key, usually Shift+5)
+    // Handle percent (% key)
     else if (key === '%') {
         handlePercent();
     }
