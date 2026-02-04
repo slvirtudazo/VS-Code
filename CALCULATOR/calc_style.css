@@ -1,3 +1,4 @@
+/* Reset default browser styles and set base font */
 * {
     margin: 0;
     padding: 0;
@@ -24,7 +25,7 @@ body {
     max-width: 360px;
 }
 
-/* Display screen */
+/* Display screen styling */
 .display {
     background: #f9f3ed;
     border: 2px solid #d4a574;
@@ -40,7 +41,7 @@ body {
     overflow-wrap: break-word;
 }
 
-/* Grid layout for buttons */
+/* Grid layout for calculator buttons */
 .buttons {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -51,7 +52,6 @@ body {
 .btn {
     border: none;
     border-radius: 12px;
-    padding: 22px;
     font-size: 1.4rem;
     font-weight: 600;
     cursor: pointer;
@@ -59,12 +59,14 @@ body {
     color: #5c4033;
     width: 100%;
     height: 70px;
+    min-width: 0;
     display: flex;
     align-items: center;
     justify-content: center;
+    box-sizing: border-box;
 }
 
-/* Number button styling */
+/* Number button styling - white background */
 .btn.number {
     background: white;
     border: 2px solid #e8d5c4;
@@ -76,7 +78,7 @@ body {
     box-shadow: 0 4px 12px rgba(139, 90, 43, 0.2);
 }
 
-/* Operator button styling - light brown */
+/* Operator button styling - light brown for all operators */
 .btn.operator {
     background: #d4a574;
     color: white;
@@ -88,7 +90,7 @@ body {
     box-shadow: 0 4px 12px rgba(139, 90, 43, 0.3);
 }
 
-/* AC and X buttons only - dark brown */
+/* Special buttons (AC and X only) - dark brown */
 .btn.special {
     background: #8b5a2b;
     color: white;

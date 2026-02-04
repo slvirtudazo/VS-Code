@@ -1,11 +1,10 @@
-// Get the display element where we show numbers and results
 const display = document.getElementById('display');
 
 // Variables to track calculator state
-let currentInput = '0';                 // What the user is currently typing
-let previousInput = '';                 // The first number before an operation
-let operation = null;                   // The operation to perform
-let shouldResetDisplay = false;         // Flag to know when to start fresh input
+let currentInput = '0';                     // What the user is currently typing
+let previousInput = '';                     // The first number before an operation
+let operation = null;                       // The operation to perform
+let shouldResetDisplay = false;             // Flag to know when to start fresh input
 
 // Get all the buttons using getElementById
 const allClearBtn = document.getElementById('all-clear');
@@ -37,12 +36,10 @@ function updateDisplay() {
 
 // Function to handle number button clicks
 function inputNumber(num) {
-    // When done calculating a result, start fresh with new number
     if (shouldResetDisplay) {
         currentInput = num;
         shouldResetDisplay = false;
     } else {
-        // Add digit to current input (replace '0' if it's the only character)
         currentInput = currentInput === '0' ? num : currentInput + num;
     }
     updateDisplay();
@@ -50,12 +47,10 @@ function inputNumber(num) {
 
 // Function to handle decimal point
 function inputDecimal() {
-    // Start fresh if done calculating
     if (shouldResetDisplay) {
         currentInput = '0.';
         shouldResetDisplay = false;
     } 
-    // Only add decimal if there isn't one already
     else if (!currentInput.includes('.')) {
         currentInput += '.';
     }
@@ -66,15 +61,12 @@ function inputDecimal() {
 function handleOperation(nextOperation) {
     const inputValue = parseFloat(currentInput);
     
-    // If we already have a previous operation pending, calculate it first
     if (operation && !shouldResetDisplay) {
         calculate();
     } else {
-        // Store the current number as the first operand
         previousInput = currentInput;
     }
     
-    // Set the new operation and prepare for next input
     operation = nextOperation;
     shouldResetDisplay = true;
 }
@@ -101,10 +93,10 @@ function calculate() {
             result = prev * current;
             break;
         case '÷':
-            result = current === 0 ? 'Error' : prev / current; // Prevent division by zero
+            result = current === 0 ? 'Error' : prev / current;
             break;
         case '%':
-            result = prev / 100; // Percent: divide by 100
+            result = prev / 100;
             break;
         default:
             return;
@@ -136,7 +128,6 @@ function allClear() {
 
 // Function to erase current input (X button)
 function erase() {
-    // Remove last character, or reset to '0' if empty
     if (currentInput.length > 1) {
         currentInput = currentInput.slice(0, -1);
     } else {
@@ -174,43 +165,33 @@ eraseBtn.addEventListener('click', () => erase());
 document.addEventListener('keydown', (event) => {
     const key = event.key;
     
-    // Handle number keys (both top row and numpad)
     if (key >= '0' && key <= '9') {
         inputNumber(key);
     }
-    // Handle decimal point (period or comma on some keyboards)
     else if (key === '.' || key === ',') {
         inputDecimal();
     }
-    // Handle addition (plus sign or equals/plus key)
     else if (key === '+') {
         handleOperation('+');
     }
-    // Handle subtraction (minus sign or dash)
     else if (key === '-') {
         handleOperation('−');
     }
-    // Handle multiplication (asterisk or x key)
     else if (key === '*' || key.toLowerCase() === 'x') {
         handleOperation('×');
     }
-    // Handle division (forward slash)
     else if (key === '/') {
         handleOperation('÷');
     }
-    // Handle percent (% key)
     else if (key === '%') {
         handlePercent();
     }
-    // Handle equals (Enter key or equals sign)
     else if (key === 'Enter' || key === '=') {
         calculate();
     }
-    // Handle erase/backspace (Backspace or Delete key)
     else if (key === 'Backspace' || key === 'Delete') {
         erase();
     }
-    // Handle all clear (Escape key or 'c' key)
     else if (key === 'Escape' || key.toLowerCase() === 'c') {
         allClear();
     }
