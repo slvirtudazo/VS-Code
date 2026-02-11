@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Level 6 - Web Dev Mini-Quest</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+</head>
+
+<body class="bg-white">
+    <div class="container mt-5 p-5 w-50">
+        <div class="card shadow-lg p-2">
+            <div class="card-body m-2">
+
+                <span class="badge text-bg-primary p-2 mb-3">Level 6</span>
+
+                <div class="mb-1">
+                    <h2 class="h2 fw-bold">Conditionals</h2>
+                </div>
+
+                <div class="mb-3">
+                    <p class="text-body-secondary">Pick a door. Only one is correct.</p>
+                </div>
+
+                <div class="d-flex gap-3 mb-3">
+                    <button id="door1" class="btn btn-success border-dark text-dark w-50 py-2">Door 1</button>
+                    <button id="door2" class="btn btn-warning border-dark text-dark w-50 py-2">Door 2</button>
+                    <button id="door3" class="btn btn-info border-dark text-dark w-50 py-2">Door 3</button>
+                </div>
+
+                <p id="message" class="border border-dark text-body-secondary text-center p-2 mb-3">
+                    Pick a door to see the result.
+                </p>
+
+                <div class="d-flex gap-3">
+                    <a href="level5.html" class="btn btn-secondary w-50">Back</a>
+                    <a href="level1.html" class="btn btn-danger w-50">Restart (Level 1)</a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const messageBox = document.getElementById("message");
+        const correct = 3;
+
+        function checkDoor(choice) {
+            if (choice === correct) {
+                messageBox.className = "border border-success fw-bold text-center p-2 mb-3 text-success";
+                messageBox.innerText = "Correct! Quest Complete";
+            } else {
+                messageBox.className = "border border-danger fw-bold text-center p-2 mb-3 text-danger";
+                messageBox.innerText = "Wrong door! Try again.";
+            }
+        }
+
+        document.getElementById("door1").addEventListener("click", function () { checkDoor(1); });
+        document.getElementById("door2").addEventListener("click", function () { checkDoor(2); });
+        document.getElementById("door3").addEventListener("click", function () { checkDoor(3); });
+    </script>
+</body>
+
+</html>
